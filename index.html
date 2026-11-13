@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>고교 학생부 탐구기록 관리 시스템 | Explore Record</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-light: #f0fdfa;
+      --student-blue: #0284c7;
+      --student-light: #f0f9ff;
+      --slate-800: #1e293b;
+      --slate-600: #475569;
+      --slate-500: #64748b;
+      --slate-200: #e2e8f0;
+      --slate-100: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background: linear-gradient(135deg, #f0fdfa 0%, #f8fafc 50%, #eff6ff 100%);
+      color: var(--slate-800);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 16px;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    header {
+      text-align: center;
+      margin-top: 32px;
+      margin-bottom: 40px;
+    }
+    .badge-sub {
+      display: inline-block;
+      background: #ccfbf1;
+      color: #0f766e;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      margin-bottom: 14px;
+      border: 1px solid #99f6e4;
+      box-shadow: 0 2px 6px rgba(15,118,110,0.08);
+    }
+    h1 {
+      font-size: clamp(26px, 4vw, 36px);
+      font-weight: 900;
+      color: var(--slate-800);
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+    h1 span {
+      background: linear-gradient(135deg, #0f766e 0%, #0284c7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.lead {
+      font-size: 15.5px;
+      color: var(--slate-600);
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .portal-card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 32px 28px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+      border: 2px solid transparent;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .portal-card.student {
+      border-color: #bae6fd;
+    }
+    .portal-card.student:hover {
+      border-color: var(--student-blue);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 30px -10px rgba(2, 132, 199, 0.15);
+    }
+    .portal-card.teacher {
+      border-color: #99f6e4;
+    }
+    .portal-card.teacher:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 30px -10px rgba(15, 118, 110, 0.15);
+    }
+    .card-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+      display: inline-block;
+    }
+    .card-title {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .student .card-title { color: var(--student-blue); }
+    .teacher .card-title { color: var(--primary); }
+    .card-desc {
+      font-size: 14px;
+      color: var(--slate-600);
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+    .feature-list {
+      list-style: none;
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      font-size: 13px;
+      color: var(--slate-700);
+    }
+    .feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .feature-list li span.bullet {
+      font-size: 14px;
+    }
+    .btn-enter {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .student .btn-enter {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+    }
+    .student .btn-enter:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+      transform: translateY(-1px);
+    }
+    .teacher .btn-enter {
+      background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+    }
+    .teacher .btn-enter:hover {
+      background: linear-gradient(135deg, #115e59 0%, #134e4a 100%);
+      transform: translateY(-1px);
+    }
+    .privacy-box {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: 14px;
+      padding: 18px 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--slate-600);
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--slate-500);
+      padding: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-sub">🚀 2022 개정 교육과정 &amp; NEIS 학생부 표준 연계 시스템</div>
+      <h1><span>Explore Record</span> 고교 탐구기록 관리 시스템</h1>
+      <p class="lead">학생의 자기주도적 3단계 탐구 설계부터 교사의 나이스(NEIS) 특기사항 초안 완성 및 엑셀 일괄 관리까지</p>
+    </header>
+
+    <div class="cards-grid">
+      <!-- 학생용 카드 -->
+      <div class="portal-card student">
+        <div>
+          <div class="card-icon">🎓</div>
+          <div class="card-title">학생용 탐구기록지</div>
+          <div class="card-desc">자기주도적 탐구 과정을 3단계(전략·기획·활동)로 체계적으로 설계하고 나이스 기재 기준에 맞추어 작성·저장합니다.</div>
+          <ul class="feature-list">
+            <li><span class="bullet">✅</span> <b>3단계 체계적 탐구 프로세스</b> (호기심·가설·심층분석)</li>
+            <li><span class="bullet">✅</span> <b>교육부 기재 금지어 실시간 감지</b> 및 자동 경고</li>
+            <li><span class="bullet">✅</span> <b>질문별 세특 1문장 생성</b> 및 자기평가서 완성</li>
+            <li><span class="bullet">✅</span> <b>보고서 HTML / PDF 인쇄 저장</b> 지원</li>
+          </ul>
+        </div>
+        <a href="student.html" class="btn-enter">👉 학생용 기록지 입장하기</a>
+      </div>
+
+      <!-- 교사용 카드 -->
+      <div class="portal-card teacher">
+        <div>
+          <div class="card-icon">🧑‍🏫</div>
+          <div class="card-title">교사용 특기사항 생성기</div>
+          <div class="card-desc">학생들이 제출한 HTML 탐구 보고서를 일괄 등록하고, AI 탐구 심도 3단계별 추천 문안을 바탕으로 고품질 세특을 신속하게 완성합니다.</div>
+          <ul class="feature-list">
+            <li><span class="bullet">✅</span> <b>학생 HTML 보고서 일괄 등록</b> 및 소속·활동 자동 분류</li>
+            <li><span class="bullet">✅</span> <b>Quiz.md 언어학 기반 3단계 세특 문장 추천</b> (원클릭 전환)</li>
+            <li><span class="bullet">✅</span> <b>상단 에디터 접기/펼치기</b> 및 실시간 바이트 게이지 관리</li>
+            <li><span class="bullet">✅</span> <b>집단별 나이스 특기사항 엑셀(XLSX) 멀티시트</b> 일괄 내보내기</li>
+          </ul>
+        </div>
+        <a href="teacher.html" class="btn-enter">👉 교사용 관리자 입장하기</a>
+      </div>
+    </div>
+
+    <div class="privacy-box">
+      🔒 <b>100% 오프라인 &amp; 로컬 브라우저 구동 보장</b><br>
+      본 시스템은 학생의 개인정보와 탐구 내용을 외부 서버로 전송하지 않으며, 모든 분석과 저장은 사용자의 로컬 브라우저 내부에서 안전하게 실행됩니다.
+    </div>
+  </div>
+
+  <footer>
+    Explore Record &copy; 2026. High School Student Academic Record Assistant.
+  </footer>
+</body>
+</html>

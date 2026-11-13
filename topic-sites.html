@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>탐구주제 추천 사이트 모음 - 학생 맞춤형 탐구 포털</title>
+<style>
+:root {
+  --md-sys-color-primary: #0f766e;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #ccfbf1;
+  --md-sys-color-on-primary-container: #115e59;
+  --md-sys-color-surface: #ffffff;
+  --md-sys-color-on-surface: #1e293b;
+  --md-sys-color-surface-container: #f8fafc;
+  --md-sys-color-surface-container-high: #f1f5f9;
+  --md-sys-color-outline: #cbd5e1;
+  --md-sys-color-outline-variant: #e2e8f0;
+  --md-sys-color-background: #f8fafc;
+  --md-shape-sm: 8px;
+  --md-shape-md: 14px;
+  --md-shape-lg: 20px;
+  --md-shape-full: 9999px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+[data-theme="dark"] {
+  --md-sys-color-primary: #2dd4bf;
+  --md-sys-color-on-primary: #042f2e;
+  --md-sys-color-primary-container: #134e4a;
+  --md-sys-color-on-primary-container: #ccfbf1;
+  --md-sys-color-surface: #0f172a;
+  --md-sys-color-on-surface: #f1f5f9;
+  --md-sys-color-surface-container: #1e293b;
+  --md-sys-color-surface-container-high: #334155;
+  --md-sys-color-outline: #475569;
+  --md-sys-color-outline-variant: #334155;
+  --md-sys-color-background: #0b1120;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard Variable", "Pretendard", "Segoe UI", Roboto, sans-serif;
+  background-color: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-surface);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* App Bar */
+.top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--md-sys-color-surface);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline);
+  padding: 8px 14px;
+  border-radius: var(--md-shape-full);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.back-link:hover {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+}
+.app-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--md-sys-color-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.theme-btn {
+  background: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-shape-full);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--md-sys-color-on-surface);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+}
+.theme-btn:hover {
+  background: var(--md-sys-color-surface-container-high);
+}
+
+/* Main Container */
+.container {
+  max-width: 1140px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+  flex: 1;
+}
+
+/* Hero Banner */
+.hero-card {
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(45, 212, 191, 0.12));
+  border: 1px solid var(--md-sys-color-primary-container);
+  border-radius: var(--md-shape-lg);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+.hero-card h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--md-sys-color-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+.hero-card p {
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface);
+  opacity: 0.9;
+  line-height: 1.6;
+}
+.hero-card .badge-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-shape-full);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--md-sys-color-primary);
+  margin-top: 12px;
+}
+
+/* Controls Bar */
+.controls-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.search-box {
+  position: relative;
+  width: 100%;
+}
+.search-input {
+  width: 100%;
+  padding: 14px 18px 14px 44px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1.5px solid var(--md-sys-color-outline);
+  border-radius: var(--md-shape-full);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+.search-input:focus {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+/* Chips Filter */
+.chips-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-chip {
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline);
+  color: var(--md-sys-color-on-surface);
+  border-radius: var(--md-shape-full);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.filter-chip:hover {
+  background: var(--md-sys-color-surface-container);
+  border-color: var(--md-sys-color-primary);
+}
+.filter-chip.active {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.3);
+}
+
+/* Stats Counter */
+.results-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+/* Cards Grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+/* M3 Card */
+.site-card {
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-shape-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+.site-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--md-sys-color-primary);
+}
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--md-sys-color-on-surface);
+  line-height: 1.4;
+}
+.cat-tag {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--md-shape-full);
+  text-transform: uppercase;
+}
+.tag-general { background: #dbeafe; color: #1e40af; }
+.tag-math-sci { background: #dcfce7; color: #15803d; }
+.tag-paper { background: #fef3c7; color: #b45309; }
+.tag-lecture { background: #ede9fe; color: #6d28d9; }
+.tag-official { background: #ccfbf1; color: #0f766e; }
+
+.card-desc {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface);
+  opacity: 0.85;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  flex: 1;
+}
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--md-sys-color-outline-variant);
+}
+.btn-open {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 9px 14px;
+  border-radius: var(--md-shape-full);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-open:hover {
+  filter: brightness(0.92);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.35);
+}
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline);
+  padding: 8px 12px;
+  border-radius: var(--md-shape-full);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-copy:hover {
+  background: var(--md-sys-color-surface-container-high);
+  border-color: var(--md-sys-color-primary);
+}
+
+/* Empty State */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 20px;
+  background: var(--md-sys-color-surface);
+  border: 1px dashed var(--md-sys-color-outline);
+  border-radius: var(--md-shape-lg);
+}
+.empty-state h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.empty-state p {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Toast */
+.toast-notice {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #1e293b;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: var(--md-shape-full);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast-notice.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 24px 20px;
+  font-size: 12px;
+  color: #94a3b8;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface);
+}
+
+/* Galaxy Fold 4 (~280px-320px) & Mobile Responsiveness */
+@media (max-width: 480px) {
+  .top-bar { padding: 10px 12px; flex-direction: column; align-items: stretch; gap: 8px; }
+  .brand-group { justify-content: space-between; }
+  .app-title { font-size: 14px; }
+  .container { padding: 14px 10px 40px; }
+  .hero-card { padding: 16px; border-radius: var(--md-shape-md); }
+  .hero-card h1 { font-size: 18px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .filter-chip { padding: 6px 12px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="brand-group">
+    <a href="record.html" class="back-link">← 탐구기록지 작성하기</a>
+    <div class="app-title">🌐 탐구 주제 참고 사이트 모음</div>
+  </div>
+  <button type="button" class="theme-btn" onclick="toggleTheme()" id="themeBtn">🌙 다크 모드</button>
+</header>
+
+<main class="container">
+  <section class="hero-card">
+    <h1>📚 공신력 있는 탐구 주제 &amp; 학술 레퍼런스</h1>
+    <p>고등학교 자율활동, 동아리, 진로 및 과목별 세특 탐구보고서 작성 시 유용한 추천 탐구 사이트와 교육부 공식 자료집 모음입니다. 관심 분야를 검색하거나 카테고리별로 필터링하여 깊이 있는 탐구 아이디어를 발견해 보세요.</p>
+    <div class="badge-note">💡 외부 제3자 사이트 종속 없이 독립적으로 운영되는 학생 맞춤형 포털입니다.</div>
+  </section>
+
+  <section class="controls-bar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="사이트명, 키워드(예: 수학, 경제, AI, 논문, 세특, 교육부) 검색..." oninput="filterCards()">
+    </div>
+    <div class="chips-container" id="categoryChips">
+      <button type="button" class="filter-chip active" onclick="setCategory('all', this)">✨ 전체 보기</button>
+      <button type="button" class="filter-chip" onclick="setCategory('종합', this)">🌟 종합·학과</button>
+      <button type="button" class="filter-chip" onclick="setCategory('수학과학', this)">🔬 수학·과학·융합</button>
+      <button type="button" class="filter-chip" onclick="setCategory('논문통계', this)">📊 논문·통계</button>
+      <button type="button" class="filter-chip" onclick="setCategory('강의영상', this)">🎓 강의·영상</button>
+      <button type="button" class="filter-chip" onclick="setCategory('교육부자료', this)">🏛️ 교육부 공식자료</button>
+    </div>
+  </section>
+
+  <div class="results-info">
+    <span id="resultsCount">총 27개 사이트 표시 중</span>
+    <span>클릭 시 새 창으로 열립니다 ↗</span>
+  </div>
+
+  <div class="cards-grid" id="cardsGrid">
+    <!-- Cards rendered via JavaScript -->
+  </div>
+</main>
+
+<div id="toast" class="toast-notice">링크가 클립보드에 복사되었습니다!</div>
+
+<footer>
+  <p>학생 맞춤형 탐구 포털 · 오프라인 환경에서도 열람 가능 · 데이터 출처: 고교 탐구활동 추천 자료</p>
+</footer>
+
+<script>
+var SITES_DATA = [
+  // 1. 종합 탐구 주제
+  {
+    name: "메이저맵 (MajorMap)",
+    category: "종합",
+    catLabel: "종합·학과",
+    tagClass: "tag-general",
+    url: "https://www.majormap.net/content?tab=5",
+    desc: "학과 탐구, 직업 탐구, 교육 뉴스 제공. 학과별 핵심 역량과 추천 도서, 최근 트렌드를 통해 탐구 주제의 방향성을 정립할 때 유용합니다.",
+    keywords: ["메이저맵", "학과", "진로", "도서", "트렌드", "직업"]
+  },
+  {
+    name: "KDE 경제교육·정보센터",
+    category: "종합",
+    catLabel: "종합·학과",
+    tagClass: "tag-general",
+    url: "https://eiec.kdi.re.kr/publish/naraPreList.do?sel_year=2026&sel_month=01",
+    desc: "KDI 한국개발연구원에서 운영하는 경제교육 포털. 경제수업, 실용경제, 경제수학 등에서 실질적인 데이터와 경제 정책 포트폴리오를 구성할 때 최적입니다.",
+    keywords: ["경제", "경영", "실용경제", "경제수학", "KDI", "정책", "통계"]
+  },
+  {
+    name: "서울대학교 지식교양 강연 (생각의 열쇠)",
+    category: "강의영상",
+    catLabel: "강의·영상",
+    tagClass: "tag-lecture",
+    url: "https://tv.naver.com/snulectures",
+    desc: "서울대학교 교수의 과학, 사회, 인문, 예술 분야 고품격 공개 강의. 교과 개념을 뛰어넘는 심층 탐구 주제와 최신 학술 동향 아이디어를 얻을 수 있습니다.",
+    keywords: ["서울대", "강의", "생각의열쇠", "교양", "인문", "사회", "과학", "예술"]
+  },
+  {
+    name: "진학사 주제 탐구보고서 아카이브",
+    category: "종합",
+    catLabel: "종합·학과",
+    tagClass: "tag-general",
+    url: "https://www.jinhak.com/jh/high12/performance/subject-search#1",
+    desc: "고교 계열별, 과목별, 키워드별 탐구보고서 검색 지원. 실제 우수 탐구 사례의 구조와 핵심 키워드를 참고할 수 있는 탐구 저장소입니다.",
+    keywords: ["진학사", "탐구보고서", "계열", "과목", "키워드", "사례"]
+  },
+  {
+    name: "2022개정 범교과 학습 주제 적용 교수학습자료",
+    category: "교육부자료",
+    catLabel: "교육부 공식",
+    tagClass: "tag-official",
+    url: "https://drive.google.com/file/d/1Se267MswpcJ46jHsVJTyIsivfzeSElYw/view?usp=sharing",
+    desc: "[교육부 공식 안내자료] 2022 개정 교육과정 범교과 학습 주제(안전, 환경, 다문화 등)를 수업 및 학생 탐구에 적용할 수 있는 교수·학습 예시 자료집입니다.",
+    keywords: ["교육부", "2022개정", "범교과", "학습주제", "수업연계", "지도안"]
+  },
+  {
+    name: "국회도서관 책이야기",
+    category: "종합",
+    catLabel: "도서·학술",
+    tagClass: "tag-general",
+    url: "https://www.nanet.go.kr/datasearch/commant/selectWeekCommantList.do",
+    desc: "국회도서관에서 매주 발행하는 주요 도서 및 명저 전문가 서평. 깊이 있는 독서 연계 탐구보고서 작성 시 훌륭한 참고 문헌을 제공합니다.",
+    keywords: ["국회도서관", "책이야기", "서평", "독서", "추천도서", "문헌"]
+  },
+  {
+    name: "진로N뉴스",
+    category: "종합",
+    catLabel: "세특·입시",
+    tagClass: "tag-general",
+    url: "https://www.jinron.kr/news/articleList.html?sc_section_code=S1N10&view_type=sm",
+    desc: "학생부 세특과 밀접하게 연계된 최신 시사 탐구 주제를 주간 단위로 게시. 사회, 과학, 보건 등 다방면의 교과 연계 이슈를 탐색할 수 있습니다.",
+    keywords: ["진로N뉴스", "세특", "시사", "뉴스", "진로", "주간이슈"]
+  },
+  {
+    name: "한국은행 멀티콘텐츠 & 연구자료",
+    category: "종합",
+    catLabel: "금융·경제",
+    tagClass: "tag-general",
+    url: "https://www.bok.or.kr/portal/singl/multiCont/list.do?pageIndex=1&targetDepth=3&menuNo=201300",
+    desc: "한국은행의 경제·금융 멀티콘텐츠, 경제 브리프, 정책 분석 뉴스. 거시경제 및 금융 수학, 금리, 물가 정책 관련 탐구 소재의 보고입니다.",
+    keywords: ["한국은행", "금융", "금리", "경제", "물가", "통화정책"]
+  },
+  {
+    name: "공통국어 탐구 활동 지도자료집",
+    category: "교육부자료",
+    catLabel: "교육부 공식",
+    tagClass: "tag-official",
+    url: "https://drive.google.com/file/d/1WaiLDEVoYwGygg5AWsMS3QowE7WLP2gV/view?usp=sharing",
+    desc: "공통국어 과목의 주제 탐구 활동 필요성, 기획 및 활동지 구성 방법, 교과 세부능력 및 특기사항(세특) 모범 기재 예시를 담은 가이드입니다.",
+    keywords: ["국어", "공통국어", "세특", "활동지", "작문", "독해", "교육부"]
+  },
+  {
+    name: "독서와 작문 탐구 활동 가이드",
+    category: "교육부자료",
+    catLabel: "교육부 공식",
+    tagClass: "tag-official",
+    url: "https://drive.google.com/file/d/1b7ZIrEueijIHpGDDYNTjzZkIj__S0eKK/view?usp=sharing",
+    desc: "독서와 작문 과목에서 심화 탐구를 기획하고 비판적 사고력을 드러낼 수 있는 탐구 프로세스 및 실제 학생 세특 우수 기재 사례집입니다.",
+    keywords: ["독서", "작문", "독서와작문", "비판적사고", "세특", "교육부"]
+  },
+
+  // 2. 수학·과학·정보 융합
+  {
+    name: "Plus Magazine (케임브리지 대학)",
+    category: "수학과학",
+    catLabel: "수학·과학",
+    tagClass: "tag-math-sci",
+    url: "https://plus.maths.org/content/everybody",
+    desc: "(영문) 실생활 속 수학, 물리학, 인공지능 알고리즘 이야기. 세계적 수학 석학들의 칼럼과 흥미로운 기사로 깊이 있는 수학 주제를 제공합니다.",
+    keywords: ["Plus Magazine", "수학", "물리", "케임브리지", "알고리즘", "인공지능"]
+  },
+  {
+    name: "일본 수학 연구실 SURUME (すうがく るーむ)",
+    category: "수학과학",
+    catLabel: "수학·심화",
+    tagClass: "tag-math-sci",
+    url: "https://math-fun.net/category/%e6%95%99%e9%a4%8a%e6%95%b0%e5%ad%a6/%e5%be%ae%e7%a9%8d%e5%88%86%e5%ad%a6/",
+    desc: "고등학교 수학 심화 탐구 소재가 풍부하며 미적분, 선형대수, 확률과 통계의 직관적인 증명과 실생활 응용 모델을 자세히 설명합니다.",
+    keywords: ["SURUME", "수학", "미적분", "선형대수", "확률", "기하", "심화수학"]
+  },
+  {
+    name: "행복수학 (유튜브 채널)",
+    category: "강의영상",
+    catLabel: "수학·영상",
+    tagClass: "tag-lecture",
+    url: "https://www.youtube.com/@HappyMath01",
+    desc: "최단경로, 부정방정식, 무리식, 원뿔곡선 등 교과서 개념에서 출발하여 대학 수준으로 확장되는 고난도 수학 심화 탐구 영상 콘텐츠를 제공합니다.",
+    keywords: ["행복수학", "수학", "최단경로", "무리식", "방정식", "유튜브", "강의"]
+  },
+  {
+    name: "NRICH (케임브리지 수학 프로젝트)",
+    category: "수학과학",
+    catLabel: "수학·물리",
+    tagClass: "tag-math-sci",
+    url: "https://nrich.maths.org/mechanics-curriculum-mapping",
+    desc: "물리 역학과 수학의 융합 탐구 과제를 찾기 최적화된 사이트. 풍부한 문제 해결 태스크와 시각화 인터랙션을 제공합니다.",
+    keywords: ["NRICH", "수학", "역학", "물리", "운동", "시뮬레이션"]
+  },
+  {
+    name: "공통수학 진로연계 교육자료 (학생용 활동지)",
+    category: "교육부자료",
+    catLabel: "교육부 공식",
+    tagClass: "tag-official",
+    url: "https://drive.google.com/file/d/1a4IrUEInWArMK--YAXMH7U8jOjsq2TFL/view?usp=sharing",
+    desc: "공통수학 개념을 의학, 인공지능, 경제, 공학 등 다양한 진로 분야와 접목하여 탐구할 수 있는 공식 활동지 모음입니다.",
+    keywords: ["공통수학", "진로연계", "수학활동지", "의학수학", "경제수학", "교육부"]
+  },
+  {
+    name: "더 사이언스 플러스 (The Science Plus)",
+    category: "수학과학",
+    catLabel: "과학·기술",
+    tagClass: "tag-math-sci",
+    url: "https://m.thescienceplus.com/",
+    desc: "기초과학부터 첨단 미래 기술까지 포괄하는 과학 전문 미디어. 최신 과학 트렌드와 연구 성과를 알기 쉽게 전달합니다.",
+    keywords: ["과학", "더사이언스플러스", "기술", "신소재", "에너지", "물리", "화학"]
+  },
+  {
+    name: "Scientific American (사이언티픽 아메리칸)",
+    category: "수학과학",
+    catLabel: "과학·글로벌",
+    tagClass: "tag-math-sci",
+    url: "https://www.scientificamerican.com/",
+    desc: "세계에서 가장 권위 있는 대중 과학 잡지. 수학, 천문, 신경과학, 환경생태 등 글로벌 첨단 과학 논의를 접할 수 있습니다.",
+    keywords: ["Scientific American", "과학", "뇌과학", "우주", "환경", "생명과학"]
+  },
+  {
+    name: "2022개정 통합과학·정보 융합 지도서 (STEAM)",
+    category: "교육부자료",
+    catLabel: "교육부 공식",
+    tagClass: "tag-official",
+    url: "https://drive.google.com/file/d/1Se267MswpcJ46jHsVJTyIsivfzeSElYw/view?usp=sharing",
+    desc: "[교육부·창의재단·경북대] 통합과학과 정보(코딩·알고리즘)를 연계한 융합 STEAM 교육 1학년 지도서 및 탐구 프로토콜입니다.",
+    keywords: ["통합과학", "정보", "융합", "STEAM", "창의재단", "교육부"]
+  },
+  {
+    name: "서울대학교 과학교육연구소 (SERC)",
+    category: "수학과학",
+    catLabel: "과학교육",
+    tagClass: "tag-math-sci",
+    url: "https://serc.snu.ac.kr/%ea%b3%bc%ed%95%99%ea%b5%90%ec%9c%a1%ec%97%b0%ea%b5%ac_db/",
+    desc: "중·고교 과학탐구지도, 학생 과학 오개념 데이터베이스, 과학동아리 우수 연구, 과학논술 자료를 총망라한 전문 아카이브입니다.",
+    keywords: ["서울대", "과학교육연구소", "과학동아리", "오개념", "탐구지도", "논술"]
+  },
+  {
+    name: "지금은 과학 (네이버 뉴스 판)",
+    category: "종합",
+    catLabel: "과학·뉴스",
+    tagClass: "tag-general",
+    url: "https://news.naver.com/hotissue/main?sid1=163&cid=1087778",
+    desc: "주요 언론사의 최신 과학 기사, 의학 보건 이슈, 우주 탐사 및 인공지능 연구 기사를 실시간으로 모아보는 허브입니다.",
+    keywords: ["과학뉴스", "네이버", "의학", "우주", "IT", "환경", "생명"]
+  },
+  {
+    name: "BioIN (생명공학정책연구센터)",
+    category: "수학과학",
+    catLabel: "바이오·의약",
+    tagClass: "tag-math-sci",
+    url: "https://www.bioin.or.kr/board.do?num=332055&cmd=view&bid=issue",
+    desc: "생명공학, 유전자가위, 바이오의약품, 면역학 등 바이오·헬스케어 산업의 전문 정책 및 기술 이슈 리포트를 제공합니다.",
+    keywords: ["BioIN", "바이오", "생명공학", "의약", "유전자", "면역", "헬스케어"]
+  },
+
+  // 3. 필수 학술·논문·통계 포털
+  {
+    name: "RISS (학술연구정보서비스)",
+    category: "논문통계",
+    catLabel: "학술·논문",
+    tagClass: "tag-paper",
+    url: "https://www.riss.kr",
+    desc: "한국교육학술정보원(KERIS) 운영. 국내 모든 대학의 석·박사 학위논문 및 국내외 학술지 논문을 원문 검색하고 열람할 수 있는 핵심 사이트입니다.",
+    keywords: ["RISS", "논문", "학술지", "학위논문", "원문", "연구"]
+  },
+  {
+    name: "구글 학술검색 (Google Scholar)",
+    category: "논문통계",
+    catLabel: "학술·논문",
+    tagClass: "tag-paper",
+    url: "https://scholar.google.co.kr",
+    desc: "전 세계 학술 논문, 서적, 초록 검색 및 인용 색인 제공. 키워드 검색을 통해 관련 논문들의 연구 맥락을 파악하기에 가장 좋습니다.",
+    keywords: ["구글학술", "Google Scholar", "학술논문", "인용", "해외논문"]
+  },
+  {
+    name: "KOSIS (국가통계포털)",
+    category: "논문통계",
+    catLabel: "국가통계",
+    tagClass: "tag-paper",
+    url: "https://kosis.kr",
+    desc: "통계청 공식 국가승인통계 포털. 인구, 경제, 사회, 환경, 교육 등 신뢰할 수 있는 공식 1차 통계 데이터를 직접 다운로드할 수 있습니다.",
+    keywords: ["KOSIS", "통계", "통계청", "국가통계", "인구", "경제", "빅데이터"]
+  },
+  {
+    name: "빅카인즈 (BIG KINDS)",
+    category: "논문통계",
+    catLabel: "뉴스 빅데이터",
+    tagClass: "tag-paper",
+    url: "https://www.bigkinds.or.kr",
+    desc: "한국언론진흥재단이 구축한 뉴스 빅데이터 분석 시스템. 키워드 트렌드, 워드클라우드, 관계망 분석 그래프를 직접 생성할 수 있습니다.",
+    keywords: ["빅카인즈", "뉴스", "빅데이터", "키워드", "언론진흥재단", "관계망"]
+  },
+  {
+    name: "K-MOOC (한국형 온라인 공개강좌)",
+    category: "강의영상",
+    catLabel: "대학강의",
+    tagClass: "tag-lecture",
+    url: "https://www.kmooc.kr",
+    desc: "국내 유수 대학의 전공 기초 및 심화 강의를 누구나 무료로 수강할 수 있는 플랫폼. 탐구 주제의 전공 배경지식을 쌓을 때 필수입니다.",
+    keywords: ["KMOOC", "대학강의", "공개강좌", "전공", "교수강의", "수료증"]
+  },
+  {
+    name: "지오지브라 (GeoGebra)",
+    category: "수학과학",
+    catLabel: "수학도구",
+    tagClass: "tag-math-sci",
+    url: "https://www.geogebra.org",
+    desc: "함수 그래프 그리기, 기하 작도, 3차원 입체 도형 및 확률 통계 시뮬레이션을 브라우저에서 직접 시연하고 탐구보고서에 첨부할 수 있습니다.",
+    keywords: ["지오지브라", "GeoGebra", "함수", "그래프", "기하", "3D", "시뮬레이션"]
+  }
+];
+
+var currentCategory = 'all';
+
+function renderCards(list) {
+  var grid = document.getElementById('cardsGrid');
+  var countEl = document.getElementById('resultsCount');
+  countEl.textContent = '총 ' + list.length + '개 사이트 표시 중';
+
+  if (list.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><h3>검색 결과가 없습니다</h3><p>다른 검색어나 카테고리 필터를 선택해 보세요.</p></div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(function(item) {
+    return '<div class="site-card">' +
+      '<div>' +
+        '<div class="card-header">' +
+          '<h3 class="card-title">' + escapeHtml(item.name) + '</h3>' +
+          '<span class="cat-tag ' + item.tagClass + '">' + escapeHtml(item.catLabel) + '</span>' +
+        '</div>' +
+        '<p class="card-desc">' + escapeHtml(item.desc) + '</p>' +
+      '</div>' +
+      '<div class="card-actions">' +
+        '<a href="' + item.url + '" target="_blank" rel="noopener noreferrer" class="btn-open">사이트 열기 ↗</a>' +
+        '<button type="button" class="btn-copy" onclick="copyLink(\'' + item.url + '\')">🔗 주소 복사</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function escapeHtml(str) {
+  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function setCategory(cat, btn) {
+  currentCategory = cat;
+  document.querySelectorAll('#categoryChips .filter-chip').forEach(function(b) {
+    b.classList.toggle('active', b === btn);
+  });
+  filterCards();
+}
+
+function filterCards() {
+  var query = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  var filtered = SITES_DATA.filter(function(item) {
+    var matchesCat = (currentCategory === 'all') || (item.category === currentCategory);
+    if (!matchesCat) return false;
+    if (!query) return true;
+    var nameMatch = item.name.toLowerCase().includes(query);
+    var descMatch = item.desc.toLowerCase().includes(query);
+    var kwMatch = item.keywords.some(function(k) { return k.toLowerCase().includes(query); });
+    return nameMatch || descMatch || kwMatch;
+  });
+  renderCards(filtered);
+}
+
+function copyLink(url) {
+  navigator.clipboard.writeText(url).then(function() {
+    showToast('링크가 클립보드에 복사되었습니다!');
+  }).catch(function() {
+    var temp = document.createElement('input');
+    temp.value = url;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand('copy');
+    document.body.removeChild(temp);
+    showToast('링크가 클립보드에 복사되었습니다!');
+  });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() {
+    t.classList.remove('show');
+  }, 2200);
+}
+
+function toggleTheme() {
+  var cur = document.documentElement.getAttribute('data-theme');
+  var next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('theme', next); } catch(e){}
+  updateThemeButton(next);
+}
+
+function updateThemeButton(theme) {
+  var btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = theme === 'dark' ? '☀️ 라이트 모드' : '🌙 다크 모드';
+}
+
+// Initial theme load
+(function() {
+  try {
+    var saved = localStorage.getItem('theme');
+    if (saved) {
+      document.documentElement.setAttribute('data-theme', saved);
+      updateThemeButton(saved);
+    }
+  } catch(e){}
+})();
+
+// Initial Render
+renderCards(SITES_DATA);
+</script>
+</body>
+</html>

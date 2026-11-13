@@ -1,0 +1,2927 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>교사용 학생부 세특 작성 & 집단 관리 시스템</title>
+<!-- SheetJS (xlsx.full.min.js) CDN -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --primary: #0f766e;
+    --primary-dark: #115e59;
+    --primary-light: #ccfbf1;
+    --blue: #2563eb;
+    --blue-dark: #1d4ed8;
+    --purple: #7c3aed;
+    --amber: #d97706;
+    --rose: #e11d48;
+    --emerald: #059669;
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", sans-serif;
+    background: #f1f5f9;
+    color: var(--slate-800);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── 전체 앱 쉘 (스마트 사이드바 + 메인 영역) ── */
+  .app-shell {
+    display: flex;
+    min-height: 100vh;
+    background: #f8fafc;
+    width: 100%;
+  }
+
+  /* ── 좌측 스마트 사이드바 ── */
+  .app-sidebar {
+    width: 240px;
+    min-width: 68px;
+    background: #ffffff;
+    border-right: 1px solid var(--slate-200);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 700;
+    box-shadow: 1px 0 6px rgba(0,0,0,0.03);
+    transition: width 0.22s cubic-bezier(0.2, 0, 0, 1);
+    flex-shrink: 0;
+  }
+  .sb-header {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--slate-200);
+    background: #ffffff;
+  }
+  .sb-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .sb-logo-icon { font-size: 20px; flex-shrink: 0; }
+  .sb-logo-text {
+    font-size: 14.5px;
+    font-weight: 900;
+    color: var(--primary);
+    letter-spacing: -0.2px;
+  }
+  .sb-toggle-btn {
+    background: var(--slate-100);
+    border: 1px solid var(--slate-300);
+    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--slate-600);
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .sb-toggle-btn:hover { background: var(--slate-200); color: var(--slate-900); }
+
+  .sb-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 10px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .sb-section-label {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: var(--slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 8px 3px;
+  }
+  .sb-nav-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--slate-700);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    text-decoration: none;
+    font-family: inherit;
+  }
+  .sb-nav-item:hover { background: var(--slate-100); color: var(--slate-900); }
+  .sb-nav-item.active {
+    background: #f0fdfa;
+    border-color: #99f6e4;
+    color: var(--primary);
+    font-weight: 800;
+  }
+  .sb-item-icon { font-size: 16px; flex-shrink: 0; }
+  .sb-item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .t-nav-badge {
+    background: var(--slate-200);
+    color: var(--slate-600);
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 9999px;
+  }
+  .sb-nav-item.active .t-nav-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .sb-footer {
+    padding: 10px;
+    border-top: 1px solid var(--slate-200);
+    background: #ffffff;
+  }
+
+  /* 사이드바 접힘 (68px) 모드 */
+  .app-sidebar.collapsed { width: 68px !important; }
+  .app-sidebar.collapsed .sb-logo-text,
+  .app-sidebar.collapsed .sb-item-text,
+  .app-sidebar.collapsed .sb-section-label,
+  .app-sidebar.collapsed .t-nav-badge {
+    display: none !important;
+  }
+  .app-sidebar.collapsed .sb-header {
+    justify-content: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+  }
+  .app-sidebar.collapsed .sb-logo {
+    justify-content: center !important;
+    cursor: pointer !important;
+    width: 100% !important;
+  }
+  .app-sidebar.collapsed .sb-logo-icon {
+    font-size: 24px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .app-sidebar.collapsed .sb-toggle-btn { display: none !important; }
+  .app-sidebar.collapsed .sb-nav-item {
+    justify-content: center !important;
+    padding: 10px 0 !important;
+    gap: 0 !important;
+  }
+  .app-sidebar.collapsed .sb-item-icon { font-size: 20px !important; }
+
+  /* ── 메인 콘텐츠 영역 ── */
+  .app-main {
+    flex: 1;
+    min-width: 0;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    overflow-y: visible;
+    overflow-x: clip;
+  }
+
+  /* 탭 패널 */
+  .tab-pane {
+    display: none;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px 24px 90px;
+    box-sizing: border-box;
+  }
+  .tab-pane.active { display: block; }
+
+  /* ── 탭 1 스타일 ── */
+  .t1-container { display: flex; flex-direction: column; gap: 20px; }
+  .category-selector-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: #ffffff;
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--slate-200);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .cat-btn {
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid var(--slate-300);
+    background: #ffffff;
+    color: var(--slate-600);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .cat-btn:hover { background: var(--slate-100); color: var(--slate-900); }
+  .cat-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.25);
+  }
+  .t1-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 900px) {
+    .t1-grid { grid-template-columns: 1fr; }
+  }
+
+  .t-card {
+    background: #ffffff;
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .t-card-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--slate-900);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--slate-100);
+  }
+  .group-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+    min-height: 40px;
+  }
+  .group-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--slate-100);
+    border: 1px solid var(--slate-300);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--slate-700);
+  }
+  .group-chip-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--slate-400);
+    padding: 0 2px;
+  }
+  .group-chip-btn:hover { color: var(--rose); }
+  .add-group-row { display: flex; gap: 8px; }
+  .add-group-input {
+    flex: 1;
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--slate-300);
+    font-size: 12.5px;
+    outline: none;
+  }
+  .add-group-input:focus { border-color: var(--primary); }
+
+  .drop-zone {
+    border: 2px dashed var(--slate-300);
+    border-radius: 12px;
+    padding: 30px 20px;
+    text-align: center;
+    background: var(--slate-50);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--primary);
+    background: #f0fdfa;
+  }
+  .dz-icon { font-size: 32px; margin-bottom: 6px; }
+  .dz-title { font-size: 14px; font-weight: 800; color: var(--slate-800); }
+  .dz-sub { font-size: 11.5px; color: var(--slate-500); margin-top: 4px; }
+
+  .student-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--slate-200);
+    border-radius: 10px;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    text-align: left;
+  }
+  .data-table th {
+    background: var(--slate-100);
+    padding: 9px 12px;
+    font-weight: 700;
+    color: var(--slate-700);
+    border-bottom: 1px solid var(--slate-200);
+  }
+  .data-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--slate-100);
+    color: var(--slate-800);
+  }
+  .data-table tr:hover { background: #f8fafc; }
+
+  /* ── 탭 2: 컴팩트 학생 전환 바 & 초안 작성 레이아웃 ── */
+  .t2-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* 상단 학생 전환 바 (요청 2 반영: 좁고 컴팩트한 버튼식 스위처) */
+  .t2-top-bar {
+    background: #ffffff;
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .t2-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .t2-cat-chips {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .t2-cat-chip {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    border: 1px solid var(--slate-300);
+    background: #ffffff;
+    color: var(--slate-600);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .t2-cat-chip:hover { background: var(--slate-100); color: var(--slate-900); }
+  .t2-cat-chip.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+  }
+  .t2-filter-select {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--slate-300);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--slate-700);
+    background: #ffffff;
+  }
+  .t2-search-input {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--slate-300);
+    font-size: 11.5px;
+    outline: none;
+    width: 140px;
+  }
+
+  /* 수평 학생 스위처 버튼 바 */
+  .student-btn-bar {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    align-items: center;
+  }
+  .student-btn-bar::-webkit-scrollbar { height: 4px; }
+  .student-btn-bar::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: 4px; }
+  
+/* 직관적인 하위집단 및 대분류 활성화 버튼 스타일 (요청 6) */
+.t2-cat-chip, .t2-subgroup-chip {
+  padding: 6px 14px !important;
+  border-radius: 9999px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border: 1px solid var(--slate-300) !important;
+  background: #ffffff !important;
+  color: var(--slate-700) !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.t2-cat-chip:hover, .t2-subgroup-chip:hover {
+  background: var(--slate-100) !important;
+  border-color: var(--slate-400) !important;
+}
+.t2-cat-chip.active, .t2-subgroup-chip.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 2px 5px rgba(2, 132, 199, 0.3) !important;
+}
+
+.stu-btn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    border: 1.5px solid var(--slate-300);
+    background: #ffffff;
+    color: var(--slate-700);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .stu-btn-pill:hover {
+    border-color: var(--primary);
+    background: #f0fdfa;
+    color: var(--primary);
+  }
+  .stu-btn-pill.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.25);
+  }
+  .stu-pill-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+  }
+  .stu-btn-pill.active .stu-pill-dot { background: #ffffff; }
+
+  /* 2분할 콘텐츠 영역 */
+  .t2-content-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    transition: grid-template-columns 0.2s ease;
+  }
+  .t2-content-split.ratio-64 {
+    grid-template-columns: 1.4fr 1fr !important;
+  }
+  .t2-content-split.ratio-55 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .t2-content-split.ratio-46 {
+    grid-template-columns: 1fr 1.4fr !important;
+  }
+  .btn-ratio {
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    border: 1px solid var(--slate-300);
+    border-radius: 6px;
+    background: #ffffff;
+    color: var(--slate-600);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-ratio:hover {
+    background: var(--slate-100);
+    border-color: var(--slate-400);
+  }
+  .btn-ratio.active {
+    background: #0284c7 !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.2) !important;
+  }
+  @media (max-width: 900px) {
+    .t2-content-split { grid-template-columns: 1fr; }
+  }
+
+  /* 모바일용 원문/초안 탭 토글러 (모바일 전용) */
+  .t2-mobile-tab-bar {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .t2-mob-btn {
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    border: 1px solid var(--slate-300);
+    background: #ffffff;
+    color: var(--slate-600);
+    cursor: pointer;
+  }
+  .t2-mob-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+  }
+  @media (max-width: 768px) {
+    .t2-mobile-tab-bar { display: grid; }
+  }
+
+  .draft-top-sticky {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 10px !important;
+    z-index: 100 !important;
+    background: #ffffff !important;
+    border: 2px solid var(--primary, #0f766e) !important;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 6px 20px rgba(15, 118, 110, 0.15) !important;
+    margin-bottom: 14px;
+    align-self: stretch !important;
+  }
+  .raw-scroll-area {
+    width: 100%;
+  }
+  .raw-box {
+    background: #ffffff;
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .draft-box {
+    background: #ffffff;
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .raw-q-card {
+    background: var(--slate-50);
+    border: 1px solid var(--slate-200);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .raw-q-label { font-size: 12.5px; font-weight: 800; color: var(--slate-800); margin-bottom: 6px; }
+  .raw-q-ans {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--slate-900);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin: 6px 0 10px;
+  }
+
+  .raw-sutek-info {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #f0f7ff;
+    border-left: 3px solid #3b82f6;
+    border-radius: 6px;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .raw-sutek-guide { color: #1e40af; font-weight: 700; margin-bottom: 4px; }
+  .raw-sutek-guide span { font-weight: normal; color: #1e3a8a; }
+  .raw-sutek-sent { color: #0f766e; font-weight: 700; }
+  .raw-sutek-sent span { font-weight: normal; color: #134e4a; }
+  .btn-insert-sutek {
+    font-size: 11px;
+    padding: 2px 8px;
+    border: 1px solid #93c5fd;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.15s ease;
+  }
+  .btn-insert-sutek:hover {
+    background: #dbeafe;
+    border-color: #3b82f6;
+  }
+  .recom-text {
+    font-size: 12px;
+    color: var(--slate-700);
+    line-height: 1.55;
+    word-break: keep-all;
+  }
+
+  .draft-textarea {
+    width: 100%;
+    min-height: 160px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1.5px solid var(--slate-300);
+    font-size: 13px;
+    line-height: 1.7;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .draft-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15,118,110,0.12); }
+
+  .byte-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--slate-500);
+    margin-top: 4px;
+  }
+  .byte-gauge-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--slate-200);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .byte-gauge-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--primary);
+    transition: width 0.2s ease;
+  }
+  .prohibit-warn {
+    display: none;
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+    font-size: 11.5px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    margin-top: 6px;
+  }
+  .prohibit-chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: #ffe4e6;
+    border: 1px solid #fda4af;
+    color: #9f1239;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1.5px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 2px;
+    transition: all 0.12s ease;
+  }
+  .prohibit-chip-btn:hover {
+    background: #e11d48;
+    color: #ffffff;
+    border-color: #be123c;
+  }
+
+  /* 추천 세특 3단계 탐구 심도 레벨 버튼 칩 */
+  .sutek-level-chips {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 6px 0 6px;
+    flex-wrap: wrap;
+  }
+  .sutek-level-btn {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2.5px 9px;
+    border-radius: 9999px;
+    border: 1px solid var(--slate-300);
+    background: #ffffff;
+    color: var(--slate-600);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .sutek-level-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .sutek-level-btn.active.lvl-1 {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(2, 132, 199, 0.25);
+  }
+  .sutek-level-btn.active.lvl-2 {
+    background: #0f766e;
+    border-color: #0f766e;
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(15, 118, 110, 0.25);
+  }
+  .sutek-level-btn.active.lvl-3 {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(124, 58, 237, 0.25);
+  }
+
+  /* ── 탭 3: 집단별 일람 & 엑셀 ── */
+  .t3-container { display: flex; flex-direction: column; gap: 18px; }
+  .t3-action-card {
+    background: #ffffff;
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .t3-excel-btn {
+    background: var(--emerald);
+    color: #ffffff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+  }
+  .t3-excel-btn:hover { background: #047857; }
+
+  /* 버튼 공통 */
+  .btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--primary); color: #ffffff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+  .btn-danger:hover { background: #fecaca; }
+  .btn-outline { background: #ffffff; border: 1px solid var(--slate-300); color: var(--slate-700); }
+  .btn-outline:hover { background: var(--slate-100); }
+  .btn-sm { padding: 4px 10px; font-size: 11.5px; }
+
+  /* 상태 배지 */
+  .badge-status {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2.5px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .badge-done { background: #dcfce7; color: #15803d; }
+  .badge-none { background: #f1f5f9; color: #64748b; }
+
+  /* 활동 구분 4대 범주 전용 배지 색상 (자율: 파랑 / 진로: 청록 / 팀: 보라 / 교과: 주황) */
+  .badge-cat-자율활동 { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+  .badge-cat-진로활동 { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
+  .badge-cat-팀프로젝트 { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+  .badge-cat-교과활동,
+  .badge-cat-교과세특 { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+
+  /* 토스트 */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: rgba(15, 23, 42, 0.92);
+    color: #ffffff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+
+  /* ── 모바일 하단 플로팅 알약 네비게이션 바 (요청 3 반영) ── */
+  .mobile-pill-bar {
+    display: none;
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 850;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 9999px;
+    padding: 5px 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+    align-items: center;
+    gap: 4px;
+  }
+  .mp-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 52px;
+  }
+  .mp-icon { font-size: 16px; line-height: 1; }
+  .mp-label { font-size: 10px; font-weight: 700; margin-top: 2px; }
+  .mp-btn:hover { color: #f1f5f9; }
+  .mp-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 118, 110, 0.4);
+  }
+  .sb-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 650;
+  }
+  .sb-backdrop.show { display: block; }
+
+  @media (max-width: 768px) {
+    .app-sidebar {
+      position: fixed;
+      left: -240px;
+      top: 0;
+      height: 100vh;
+      transition: left 0.25s ease;
+    }
+    .app-sidebar.show-mobile { left: 0; }
+    .mobile-pill-bar { display: flex; }
+    .tab-pane { padding: 12px 14px 100px; }
+    .raw-box, .draft-box { max-height: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <!-- 좌측 스마트 접이식 사이드바 (Navigation Rail) -->
+  <aside class="app-sidebar" id="appSidebar">
+    <div class="sb-header" onclick="handleSbHeaderClick(event)" title="클릭하여 사이드바 열기/닫기">
+      <div class="sb-logo" onclick="handleSbLogoClick(event)">
+        <span class="sb-logo-icon">🎓</span>
+        <span class="sb-logo-text">교사용 관리 포털</span>
+      </div>
+      <button type="button" class="sb-toggle-btn" id="sbToggleBtn" onclick="event.stopPropagation(); toggleSidebar();" title="사이드바 접기/펼치기">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <rect width="18" height="18" x="3" y="3" rx="3" ry="3"/>
+          <line x1="9" x2="9" y1="3" y2="21"/>
+          <path d="m14 9-3 3 3 3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="sb-nav">
+      <div class="sb-section-label">포털 메뉴</div>
+      <button type="button" class="sb-nav-item active" id="sbTab1" onclick="switchPortalTab(1)">
+        <span class="sb-item-icon">📁</span>
+        <span class="sb-item-text">1. 등록 & 집단</span>
+        <span class="t-nav-badge" id="tabBadge1">0명</span>
+      </button>
+      <button type="button" class="sb-nav-item" id="sbTab2" onclick="switchPortalTab(2)">
+        <span class="sb-item-icon">✍️</span>
+        <span class="sb-item-text">2. 기록 & 초안</span>
+      </button>
+      <button type="button" class="sb-nav-item" id="sbTab3" onclick="switchPortalTab(3)">
+        <span class="sb-item-icon">📊</span>
+        <span class="sb-item-text">3. 세특 & 엑셀</span>
+      </button>
+
+<!-- 대분류 빠른 전환 사이드바 메뉴 제거 (요청 5) -->
+    </div>
+
+    <div class="sb-footer">
+      <button type="button" class="sb-nav-item" onclick="resetAllDataConfirm()" style="color:var(--rose)">
+        <span class="sb-item-icon">🗑️</span>
+        <span class="sb-item-text">데이터 초기화</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 본문 영역 -->
+  <main class="app-main">
+    <!-- ════════════════════════════════════════════════
+         탭 1: 학생 등록 & 집단 관리
+         ════════════════════════════════════════════════ -->
+    <div class="tab-pane active" id="pane1">
+      <div class="t1-container">
+<!-- 대분류 선택 바 제거 (파일 내용으로 100% 자동 분류) -->
+
+        <!-- 집단 관리 & 파일 등록 2열 그리드 -->
+        <div class="t1-grid">
+          <!-- 좌측: 하위 집단 관리 (CRUD) -->
+          <div class="t-card">
+            <div class="t-card-hd">
+              <span>👥 <b id="curCatLabel">자율활동</b> 하위 집단 관리</span>
+              <span style="font-size:11px;color:var(--slate-500)">수정/삭제/추가</span>
+            </div>
+            <!-- 대분류 선택 칩 (자율, 진로, 팀프로젝트, 교과활동) -->
+            <div class="t2-cat-chips" id="t1GroupManageChips" style="display:flex;align-items:center;gap:5px;margin-bottom:10px;flex-wrap:wrap">
+              <button type="button" class="t2-cat-chip active" data-cat="자율활동" onclick="switchGroupManageCat('자율활동')">자율활동</button>
+              <button type="button" class="t2-cat-chip" data-cat="진로활동" onclick="switchGroupManageCat('진로활동')">진로활동</button>
+              <button type="button" class="t2-cat-chip" data-cat="팀프로젝트" onclick="switchGroupManageCat('팀프로젝트')">팀프로젝트</button>
+              <button type="button" class="t2-cat-chip" data-cat="교과세특" onclick="switchGroupManageCat('교과세특')">교과활동</button>
+            </div>
+            <div class="group-chip-list" id="groupChipList"></div>
+            <div class="add-group-row">
+              <input type="text" class="add-group-input" id="newGroupNameInput" placeholder="새 하위 집단명 (예: 4반, 화학팀)">
+              <button type="button" class="btn btn-primary btn-sm" onclick="addNewGroup()">➕ 추가</button>
+            </div>
+          </div>
+
+          <!-- 우측: 파일 일괄 등록 -->
+          <div class="t-card">
+            <div class="t-card-hd">
+              <span>📥 학생 활동 파일 일괄 등록</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:11.5px;color:var(--slate-600)">배정 집단:</span>
+                <select id="targetGroupSelect" style="padding:3px 8px;border-radius:6px;border:1px solid var(--slate-300);font-size:12px;font-weight:700"></select>
+              </div>
+            </div>
+
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+              <div class="dz-icon">📂</div>
+              <div class="dz-title">학생 웹포트폴리오 결과보고서(.html) 일괄 등록</div>
+              <div class="dz-sub">여러 개의 HTML 파일을 이곳으로 드래그하거나 클릭하여 선택하세요.</div>
+              <input type="file" id="fileInput" multiple accept=".html,.htm" style="display:none;" onchange="handleFileSelect(event)">
+            </div>
+          </div>
+        </div>
+
+        <!-- 하단: 등록된 학생 명단 관리 표 -->
+        <div class="t-card">
+          <div class="t-card-hd" style="flex-wrap:wrap;gap:10px">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span>📋 전체 등록 학생 명단 (<span id="stuCountLabel">0</span>명)</span>
+              <div class="t2-cat-chips" id="t1CatFilterChips" style="display:flex;align-items:center;gap:4px">
+                <button type="button" class="t2-cat-chip active" data-cat="ALL" onclick="setT1CatFilter('ALL')">전체보기</button>
+                <button type="button" class="t2-cat-chip" data-cat="자율활동" onclick="setT1CatFilter('자율활동')">자율</button>
+                <button type="button" class="t2-cat-chip" data-cat="진로활동" onclick="setT1CatFilter('진로활동')">진로</button>
+                <button type="button" class="t2-cat-chip" data-cat="팀프로젝트" onclick="setT1CatFilter('팀프로젝트')">팀</button>
+                <button type="button" class="t2-cat-chip" data-cat="교과세특" onclick="setT1CatFilter('교과세특')">교과</button>
+              </div>
+              <input type="text" id="t1Search" class="add-group-input" style="width:180px" placeholder="🔍 학번, 이름 검색..." oninput="renderT1StudentTable()">
+            </div>
+            <div style="display:flex;gap:6px">
+              <button type="button" class="btn btn-danger btn-sm" onclick="deleteSelectedStudents()">선택 학생 삭제</button>
+            </div>
+          </div>
+
+          <div class="student-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:36px"><input type="checkbox" id="checkAllStudents" onchange="toggleCheckAll(this)"></th>
+                  <th style="width:90px">학번</th>
+                  <th style="width:90px">성명</th>
+                  <th style="width:110px">활동 구분</th>
+                  <th style="width:140px">소속 하위 집단</th>
+                  <th style="width:200px">초안 작성 진행도 (바이트)</th>
+                  <th style="width:70px">관리</th>
+                </tr>
+              </thead>
+              <tbody id="t1StudentTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         탭 2: 학생 기록 관리 & 초안 작성 (버튼식 스위처 + AI 추천 문안 3종)
+         ════════════════════════════════════════════════ -->
+    <div class="tab-pane" id="pane2">
+      <div class="t2-shell">
+        <!-- 상단 컴팩트 학생 스위처 바 (요청 2 반영) -->
+        <div class="t2-top-bar">
+          <div class="t2-filter-row" style="flex-direction:column;align-items:stretch;gap:10px">
+            <!-- 1) 대분류 선택 버튼 바 -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-size:12px;font-weight:800;color:var(--slate-600);min-width:60px">대분류:</span>
+              <div class="t2-cat-chips" id="t2CatChips">
+                <button type="button" class="t2-cat-chip active" data-cat="ALL" onclick="setT2CatFilter('ALL')">전체</button>
+                <button type="button" class="t2-cat-chip" data-cat="자율활동" onclick="setT2CatFilter('자율활동')">자율활동</button>
+                <button type="button" class="t2-cat-chip" data-cat="진로활동" onclick="setT2CatFilter('진로활동')">진로활동</button>
+                <button type="button" class="t2-cat-chip" data-cat="팀프로젝트" onclick="setT2CatFilter('팀프로젝트')">팀프로젝트</button>
+                <button type="button" class="t2-cat-chip" data-cat="교과세특" onclick="setT2CatFilter('교과세특')">교과세특</button>
+              </div>
+            </div>
+
+            <!-- 2) 하위집단 선택 버튼 바 (Chips) -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-size:12px;font-weight:800;color:var(--slate-600);min-width:60px">하위집단:</span>
+              <div class="t2-subgroup-chips" id="t2SubgroupChips" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <!-- 동적으로 생성되는 하위집단 버튼 -->
+              </div>
+            </div>
+
+            <!-- 3) 학생 선택 드롭다운 & 검색창 -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:4px;border-top:1px dashed var(--slate-200)">
+              <span style="font-size:12px;font-weight:800;color:var(--slate-800);min-width:60px">학생 선택:</span>
+              <select id="t2StudentSelect" class="t2-filter-select" style="width:230px;min-width:210px;max-width:260px;min-height:42px;padding:8px 12px;font-size:13.5px;font-weight:700;border:1.5px solid var(--slate-300);border-radius:8px" onchange="onT2StudentDropdownChange(this.value)">
+                <option value="">-- 학생을 선택하세요 --</option>
+              </select>
+              <input type="text" id="t2Search" class="t2-search-input" style="width:200px" placeholder="🔍 학번/이름 검색..." oninput="onT2SearchInput()">
+            </div>
+          </div>
+        </div>
+
+        <!-- 빈 상태 안내 -->
+        <div id="t2EmptyState" style="text-align:center;padding:80px 20px;color:var(--slate-500)">
+          <div style="font-size:42px;margin-bottom:12px">👆</div>
+          <div style="font-size:16px;font-weight:800;color:var(--slate-700)">상단 바에서 열람할 학생을 선택하세요.</div>
+          <div style="font-size:12.5px;margin-top:6px">학생이 작성한 2단계 기획서와 3단계 전체 답변 원문을 보며 추천 문안을 선택하거나 직접 작성할 수 있습니다.</div>
+        </div>
+
+        <!-- 학생 상세 뷰 -->
+        <div id="t2DetailView" style="display:none;flex-direction:column;gap:14px">
+          <!-- 상단 고정: 학생부 특기사항 편집기 -->
+          <div class="draft-top-sticky" id="draftEditorBox">
+            <!-- 헤더 정보 -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid var(--slate-200);margin-bottom:6px">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:15px;font-weight:900;color:var(--slate-900)" id="shName">김OO</span>
+                <span style="font-size:12px;color:var(--slate-500)" id="shMeta">30101 | 자율활동 (1반)</span>
+                <span id="shByteSummary" style="font-size:11.5px;font-weight:800;color:var(--primary);display:none;background:#f0fdfa;padding:2px 8px;border-radius:4px;border:1px solid #99f6e4"></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <button type="button" class="btn btn-primary btn-sm" onclick="saveCurrentDraft()" style="font-size:12px;padding:5px 12px;font-weight:700">💾 학생부 초안 저장</button>
+                <button type="button" id="btnToggleDraftBox" class="btn btn-sm" onclick="toggleDraftEditorBox()" style="font-size:11.5px;padding:5px 9px;font-weight:700;border:1px solid var(--slate-300);background:#fff;color:var(--slate-700);border-radius:6px;cursor:pointer" title="편집기를 접어 아래 학생 활동 보고서를 더 넓게 봅니다">🔼 편집기 접기</button>
+              </div>
+            </div>
+
+            <!-- 직접 작성 및 편집 에디터 본문 (접힘/펼침 대상) -->
+            <div id="draftEditorBody">
+              <div style="font-size:12px;font-weight:800;color:var(--slate-800);margin-bottom:4px">✍️ 학생부 특기사항 편집기 <span style="font-size:11px;font-weight:normal;color:var(--slate-500)">(상단 고정 · 아래 학생 보고서의 세특 문장을 직접 수정 후 삽입할 수 있습니다)</span></div>
+              <textarea id="draftTextarea" class="draft-textarea" style="min-height:90px;height:auto;overflow-y:hidden;resize:vertical;line-height:1.6;" placeholder="학생부 특기사항 문안을 입력하거나, 아래 보고서에서 추천 문장을 수정 후 삽입하세요..." oninput="updateByteCounter(); autoResizeTextarea(this);"></textarea>
+              <div class="byte-info" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:4px">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span>글자 수: <b id="charCount">0</b>자</span>
+                  <span>바이트: <b id="byteCount">0</b> / <span id="maxByteLabel">1500</span> Byte</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--slate-600)">
+                  <label for="byteLimitSelect" style="font-weight:700">📏 기준 한도:</label>
+                  <select id="byteLimitSelect" onchange="onByteLimitChange(this.value)" style="padding:2px 6px;border-radius:6px;border:1px solid var(--slate-300);font-size:11.5px;font-weight:700;color:var(--slate-800);background:#fff;cursor:pointer">
+                    <option value="1500">1,500 Byte (500자)</option>
+                    <option value="1800">1,800 Byte (600자)</option>
+                    <option value="2100">2,100 Byte (700자)</option>
+                    <option value="custom">직접 입력...</option>
+                  </select>
+                  <input type="number" id="customByteInput" placeholder="바이트" min="100" max="10000" step="50" oninput="onCustomByteInput(this.value)" style="display:none;width:66px;padding:2px 6px;border-radius:6px;border:1px solid var(--slate-300);font-size:11.5px;font-weight:700;text-align:right">
+                </div>
+              </div>
+              <div class="byte-gauge-bar" style="margin-top:4px">
+                <div class="byte-gauge-fill" id="byteGauge"></div>
+              </div>
+              <div class="prohibit-warn" id="prohibitWarn" style="margin-top:6px">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                  <span style="font-weight:800;color:#9f1239">⚠️ 금지어 감지:</span>
+                  <div id="prohibitList" style="display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px"></div>
+                  <span style="font-size:10.5px;color:#9f1239;font-weight:normal">(단어 클릭 시 해당 위치로 이동)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 하단: 학생 활동 보고서 및 질문별 세특 문장 (스크롤 영역) -->
+          <div class="raw-scroll-area">
+            <div style="font-size:13px;font-weight:900;color:var(--slate-800);margin:12px 0 8px;display:flex;align-items:center;gap:6px">
+              <span>📄 학생 활동 보고서 원문 &amp; 질문별 세특 추천 문장</span>
+              <span style="font-size:11.5px;font-weight:normal;color:var(--slate-500)">(추천 세특 1문장을 직접 수정한 뒤 [+ 세특 문장 추가]를 누르면 상단 편집기에 바로 반영됩니다)</span>
+            </div>
+            <div class="raw-box" id="rawContentViewer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         탭 3: 집단별 초안 확인 & 엑셀 다운로드
+         ════════════════════════════════════════════════ -->
+    <div class="tab-pane" id="pane3">
+      <div class="t3-container">
+        <!-- 상단 필터 및 엑셀 다운로드 바 -->
+        <div class="t3-action-card">
+          <div class="t3-filter-group" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:800;color:var(--slate-700)">대분류:</span>
+            <div class="t3-cat-chips" id="t3CatChips" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <button type="button" class="t2-cat-chip active" data-cat="자율활동" onclick="setT3CatFilter('자율활동')">자율활동</button>
+              <button type="button" class="t2-cat-chip" data-cat="진로활동" onclick="setT3CatFilter('진로활동')">진로활동</button>
+              <button type="button" class="t2-cat-chip" data-cat="팀프로젝트" onclick="setT3CatFilter('팀프로젝트')">팀프로젝트</button>
+              <button type="button" class="t2-cat-chip" data-cat="교과세특" onclick="setT3CatFilter('교과세특')">교과세특</button>
+            </div>
+            <span style="font-size:11.5px;color:var(--slate-500)">(하위 집단별 1개 시트로 자동 분리 내보내기)</span>
+          </div>
+
+          <div>
+            <button type="button" class="t3-excel-btn" onclick="exportToExcelMultiSheets()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              📊 하위 집단별 엑셀 파일 다운로드 (.xlsx)
+            </button>
+          </div>
+        </div>
+
+        <!-- 집단별 초안 일람표 영역 -->
+        <div id="t3GroupSectionsContainer" style="display:flex;flex-direction:column;gap:18px"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 모바일 하단 플로팅 알약 네비게이션 바 -->
+<div class="mobile-pill-bar" id="mobilePillBar">
+  <button type="button" class="mp-btn active" id="mpBtn1" onclick="switchPortalTab(1)">
+    <span class="mp-icon">📁</span>
+    <span class="mp-label">등록</span>
+  </button>
+  <button type="button" class="mp-btn" id="mpBtn2" onclick="switchPortalTab(2)">
+    <span class="mp-icon">✍️</span>
+    <span class="mp-label">초안</span>
+  </button>
+  <button type="button" class="mp-btn" id="mpBtn3" onclick="switchPortalTab(3)">
+    <span class="mp-icon">📊</span>
+    <span class="mp-label">엑셀</span>
+  </button>
+</div>
+
+<!-- 토스트 메시지 -->
+<div class="toast" id="toastMessage"></div>
+
+<script>
+function autoResizeTextarea(el) {
+  if (!el || el.tagName !== 'TEXTAREA') return;
+  el.style.height = 'auto';
+  var minH = (el.id === 'draftTextarea') ? 90 : (el.classList.contains('sutek-textarea') ? 34 : 54);
+  el.style.height = Math.max(el.scrollHeight, minH) + 'px';
+}
+
+function autoResizeAllTextareas(root) {
+  var container = root || document;
+  container.querySelectorAll('textarea').forEach(function(ta) {
+    if (ta.offsetParent !== null) {
+      ta.style.height = 'auto';
+      ta.style.height = Math.max(ta.scrollHeight, 54) + 'px';
+    }
+  });
+}
+
+// ════════════════════════════════════════════════
+// 교사용 포털 핵심 데이터 엔진 & 로직
+// ════════════════════════════════════════════════
+
+var DB_KEY = 'TEACHER_MANAGEMENT_DB_V2';
+
+var CATEGORIES = ['자율활동', '진로활동', '팀프로젝트', '교과세특'];
+
+var DEFAULT_GROUPS = {
+  '자율활동': ['1반', '2반', '3반'],
+  '진로활동': ['1반', '2반', '3반'],
+  '팀프로젝트': ['1팀', '2팀', '3팀'],
+  '교과세특': ['수학반', '과학반', '국어반']
+};
+
+var GROUPS = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+var STUDENTS = [];
+var CURRENT_CAT = '자율활동';
+var GROUP_MANAGE_CAT = '자율활동'; // 탭 1 하위 집단 관리 대상 대분류
+var CURRENT_STU_ID = null;
+var T2_CAT_FILTER = 'ALL';
+var CACHED_DRAFTS = {};
+
+var DEFAULT_BYTE_LIMITS = {
+  '자율활동': 1500,
+  '동아리활동': 1500,
+  '진로활동': 2100,
+  '교과세특': 1500,
+  '팀프로젝트': 1500
+};
+var CATEGORY_BYTE_LIMITS = JSON.parse(JSON.stringify(DEFAULT_BYTE_LIMITS));
+
+var PROHIBITED_WORDS = [
+  // 공인어학시험, 교외 인증 및 수상·대회
+  '토익', 'TOEIC', 'toeic', '토플', 'TOEFL', 'toefl', '텝스', 'TEPS', 'teps', '수능', '모의고사',
+  '경시대회', '올림피아드', '교외대회', '교외상', '발명대회', '인증시험', '어학연수', '자격증', '논문', '학술지', '등재', '특허', '출원',
+  '연구보고서', '대회', '대외', '대외체험', '수상', '시험', '전국연합평가', '장학금', '장학생', '장학',
+  // 부모 및 친인척, 특정 직업 명칭
+  '부모', '아버지', '어머니', '의사', '교수', '검사', '판사', 'CEO',
+  // IT 플랫폼, 기업명, 상용 서비스, 기기명
+  '개더타운', 'Galaxy Tab', 'GalaxyTab', 'galaxytab', '갤럭시 탭', '갤럭시탭', '구글', '구글 클래스룸', '구글클래스룸', '구글 티비', '구글문서', '구글 문서',
+  '네이버', '네이버 밴드', '네이버밴드', '넷플릭스', '디즈니플러스', '띵커벨', '망고보드', '메이저맵', '메타', '멘티미터',
+  '미리캔버스', '블로', '삼성', '아이패드', 'iPad', 'ipad', '애플', '왓챠', '웨이브', '유튜버', '유튜브',
+  '이프랜드', '인스타그램', '제페토', '카카오톡', '카톡', '캔바', '커리어넷', '크롬북', 'chrome book', 'chromebook',
+  '클래스팅', '트위터', '티빙', '틱톡', '파이널 컷', '파이널컷', '페이스북', '프리미어', '홀랜드', 'EBS', 'ebs',
+  'KTX', 'ktx', 'MBTI', 'mbti', 'OTT', 'ott', 'SRT', 'srt', 'TED', 'ted', 'VR', 'vr', 'AR', 'ar',
+  '다음', '라인', '아이북', '줌', '화이트 보드', '화이트보드', 'CCD', 'ccd', 'ETF', 'etf', 'GPT', 'gpt', 'NFT', 'nft', '파이썬',
+  // 국제기구, 정부/지자체 기관, 특정 단체 및 유의 단어
+  '경제협력개발기구', 'OECD', 'oecd', '국제원자력기구', 'IAEA', 'iaea', '국제통화기금', 'IMF', 'imf',
+  '북대서양조약기구', 'NATO', 'nato', '세계무역기구', 'WTO', 'wto', '세계보건기구', 'WHO', 'who',
+  '유네스코', 'UNESCO', 'unesco', 'EU', 'eu', '유엔', 'UN', 'un', '유럽연합', '유렵연합',
+  '경찰청', '시청', '통계청', '충무', '통영', '연합', '일본', 'ESG', 'esg', '세상을 바꾸는'
+];
+
+function loadDB() {
+  try {
+    var raw = localStorage.getItem(DB_KEY);
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (parsed.groups) GROUPS = parsed.groups;
+      if (parsed.students) STUDENTS = parsed.students;
+      if (parsed.byteLimits) CATEGORY_BYTE_LIMITS = Object.assign({}, DEFAULT_BYTE_LIMITS, parsed.byteLimits);
+    }
+  } catch(e) {}
+}
+
+function saveDB() {
+  try {
+    localStorage.setItem(DB_KEY, JSON.stringify({
+      groups: GROUPS,
+      students: STUDENTS,
+      byteLimits: CATEGORY_BYTE_LIMITS
+    }));
+  } catch(e) {}
+  updateHeaderBadges();
+}
+
+function updateHeaderBadges() {
+  var b1 = document.getElementById('tabBadge1');
+  if (b1) b1.textContent = STUDENTS.length + '명';
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toastMessage');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function() { t.style.display = 'none'; }, 2600);
+}
+
+function _esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/* 사이드바 토글 */
+function toggleSidebar() {
+  var sb = document.getElementById('appSidebar');
+  if (!sb) return;
+  if (window.innerWidth <= 768) {
+    sb.classList.toggle('show-mobile');
+    var bd = document.getElementById('sbBackdrop');
+    if (!bd) {
+      bd = document.createElement('div');
+      bd.id = 'sbBackdrop';
+      bd.className = 'sb-backdrop';
+      bd.onclick = function() {
+        sb.classList.remove('show-mobile');
+        bd.classList.remove('show');
+      };
+      document.body.appendChild(bd);
+    }
+    bd.classList.toggle('show', sb.classList.contains('show-mobile'));
+  } else {
+    sb.classList.toggle('collapsed');
+  }
+}
+
+function handleSbHeaderClick(e) {
+  var sb = document.getElementById('appSidebar');
+  if (sb && sb.classList.contains('collapsed')) {
+    toggleSidebar();
+  }
+}
+function handleSbLogoClick(e) {
+  var sb = document.getElementById('appSidebar');
+  if (sb && sb.classList.contains('collapsed')) {
+    e.stopPropagation();
+    toggleSidebar();
+  }
+}
+
+/* 포털 메인 탭 전환 (1: 등록, 2: 기록/초안, 3: 세특/엑셀) */
+function switchPortalTab(n) {
+  for (var i = 1; i <= 3; i++) {
+    var pane = document.getElementById('pane' + i);
+    var sbBtn = document.getElementById('sbTab' + i);
+    var mpBtn = document.getElementById('mpBtn' + i);
+    if (pane) pane.classList.toggle('active', i === n);
+    if (sbBtn) sbBtn.classList.toggle('active', i === n);
+    if (mpBtn) mpBtn.classList.toggle('active', i === n);
+  }
+
+  // 모바일 드로어 닫기
+  if (window.innerWidth <= 768) {
+    var sbMobile = document.getElementById('appSidebar');
+    var bdMobile = document.getElementById('sbBackdrop');
+    if (sbMobile) sbMobile.classList.remove('show-mobile');
+    if (bdMobile) bdMobile.classList.remove('show');
+  }
+
+  if (n === 1) renderT1();
+  if (n === 2) initT2();
+  if (n === 3) renderT3Summary();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* 대분류 전환 */
+function switchCategory(cat) {
+  CURRENT_CAT = cat;
+  document.querySelectorAll('.cat-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.cat === cat);
+  });
+  document.querySelectorAll('.cat-item').forEach(function(b) {
+    b.classList.toggle('active', b.id === 'sbCat_' + cat);
+  });
+  var lbl = document.getElementById('curCatLabel');
+  if (lbl) lbl.textContent = cat;
+
+  renderT1();
+  if (document.getElementById('pane2').classList.contains('active')) {
+    setT2CatFilter(cat);
+  }
+}
+
+/* 탭 1 하위 집단 관리 대분류 전환 */
+function switchGroupManageCat(cat) {
+  GROUP_MANAGE_CAT = cat;
+  var lbl = document.getElementById('curCatLabel');
+  if (lbl) lbl.textContent = cat;
+  document.querySelectorAll('#t1GroupManageChips .t2-cat-chip').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.cat === cat);
+  });
+  renderGroupChips();
+  updateTargetGroupSelect();
+}
+
+/* 탭 1 렌더링 */
+function renderT1() {
+  renderGroupChips();
+  updateTargetGroupSelect();
+  renderT1StudentTable();
+  updateHeaderBadges();
+}
+
+function renderGroupChips() {
+  var list = document.getElementById('groupChipList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  var curGroups = GROUPS[GROUP_MANAGE_CAT] || [];
+  curGroups.forEach(function(gName, idx) {
+    var chip = document.createElement('div');
+    chip.className = 'group-chip';
+    chip.innerHTML = '<span>' + _esc(gName) + '</span>' +
+      '<button type="button" class="group-chip-btn" onclick="editGroup(\'' + _esc(gName) + '\', ' + idx + ')" title="수정">✏️</button>' +
+      '<button type="button" class="group-chip-btn" onclick="deleteGroup(' + idx + ')" title="삭제">✕</button>';
+    list.appendChild(chip);
+  });
+}
+
+function updateTargetGroupSelect() {
+  var sel = document.getElementById('targetGroupSelect');
+  if (!sel) return;
+  var prevVal = sel.value;
+  sel.innerHTML = '';
+
+  // 1. 기본값: 학번 및 파일명 기반 지능형 자동 감지
+  var autoOpt = document.createElement('option');
+  autoOpt.value = '__AUTO__';
+  autoOpt.textContent = '✨ 자동 감지 (학번/파일명 기반)';
+  sel.appendChild(autoOpt);
+
+  // 2. 현재 관리 중인 대분류 하위 집단들
+  var curCatGroups = GROUPS[GROUP_MANAGE_CAT] || [];
+  if (curCatGroups.length > 0) {
+    var grpCur = document.createElement('optgroup');
+    grpCur.label = '선택 대분류 (' + GROUP_MANAGE_CAT + ')';
+    curCatGroups.forEach(function(gName) {
+      var opt = document.createElement('option');
+      opt.value = gName;
+      opt.textContent = gName;
+      grpCur.appendChild(opt);
+    });
+    sel.appendChild(grpCur);
+  }
+
+  // 3. 기타 대분류 하위 집단들
+  ['자율활동', '진로활동', '팀프로젝트', '교과세특'].forEach(function(cat) {
+    if (cat === GROUP_MANAGE_CAT) return;
+    var list = GROUPS[cat] || [];
+    if (list.length > 0) {
+      var grpOther = document.createElement('optgroup');
+      grpOther.label = cat;
+      list.forEach(function(gName) {
+        var opt = document.createElement('option');
+        opt.value = gName;
+        opt.textContent = gName + ' (' + cat + ')';
+        grpOther.appendChild(opt);
+      });
+      sel.appendChild(grpOther);
+    }
+  });
+
+  if (prevVal) sel.value = prevVal;
+  if (!sel.value) sel.value = '__AUTO__';
+}
+
+function addNewGroup() {
+  var input = document.getElementById('newGroupNameInput');
+  var name = (input.value || '').trim();
+  if (!name) return;
+
+  if (!GROUPS[GROUP_MANAGE_CAT]) GROUPS[GROUP_MANAGE_CAT] = [];
+  if (GROUPS[GROUP_MANAGE_CAT].indexOf(name) !== -1) {
+    alert('이미 존재하는 하위 집단명입니다.');
+    return;
+  }
+  GROUPS[GROUP_MANAGE_CAT].push(name);
+  input.value = '';
+  saveDB();
+  renderGroupChips();
+  updateTargetGroupSelect();
+  showToast('[' + GROUP_MANAGE_CAT + '] 하위 집단 [' + name + ']이(가) 추가되었습니다.');
+}
+
+function editGroup(oldName, idx) {
+  var newName = prompt('하위 집단명을 수정하세요:', oldName);
+  if (!newName || newName.trim() === '' || newName === oldName) return;
+  newName = newName.trim();
+
+  GROUPS[GROUP_MANAGE_CAT][idx] = newName;
+  STUDENTS.forEach(function(s) {
+    if (s.category === GROUP_MANAGE_CAT && s.group === oldName) {
+      s.group = newName;
+    }
+  });
+  saveDB();
+  renderT1();
+  showToast('하위 집단명이 [' + newName + '](으)로 변경되었습니다.');
+}
+
+function deleteGroup(idx) {
+  var curGroups = GROUPS[GROUP_MANAGE_CAT] || [];
+  var gName = curGroups[idx];
+  if (!confirm('[' + GROUP_MANAGE_CAT + '] 하위 집단 [' + gName + ']을(를) 삭제하시겠습니까?\n소속된 학생들은 [미지정] 상태가 됩니다.')) return;
+
+  curGroups.splice(idx, 1);
+  STUDENTS.forEach(function(s) {
+    if (s.category === GROUP_MANAGE_CAT && s.group === gName) {
+      s.group = '미지정';
+    }
+  });
+  saveDB();
+  renderT1();
+  showToast('하위 집단이 삭제되었습니다.');
+}
+
+/* 소속 하위 집단 자동 감지 알고리즘 */
+function detectAssignedGroup(data, htmlContent, filename, detectedCat) {
+  var d = data || {};
+  var fn = filename || '';
+  var sNo = (d['j_no'] || d['n_no'] || d['t_no'] || d['s_no'] || '').toString().trim();
+
+  // 1순위: 파일명에서 반/팀 명칭 정규식 탐지 (예: [1반], 2반, 3분반, 화학탐구팀, A팀, 2조)
+  var mFn = fn.match(/\[?([0-9]+반|[0-9]+팀|[A-Za-z]+팀|[0-9]+분반|[0-9]+조|\S+반|\S+팀)\]?/);
+  if (mFn && mFn[1]) {
+    var rawGrp = mFn[1].replace(/[\[\]\(\)]/g, '').trim();
+    if (rawGrp) return rawGrp;
+  }
+
+  // 2순위: 학번(sNo)에서 학급(반) 번호 정밀 감지
+  // 5자리 학번 (예: 30105 -> 3학년 1반 5번)
+  if (sNo && sNo.match(/^\d([0-9]{2})\d{2}$/)) {
+    var m5 = sNo.match(/^\d([0-9]{2})\d{2}$/);
+    var c5 = parseInt(m5[1], 10);
+    if (!isNaN(c5) && c5 > 0 && c5 <= 35) return c5 + '반';
+  }
+  // 4자리 학번 (예: 3105 -> 3학년 1반 5번)
+  if (sNo && sNo.match(/^\d([1-9])\d{2}$/)) {
+    var m4 = sNo.match(/^\d([1-9])\d{2}$/);
+    var c4 = parseInt(m4[1], 10);
+    if (!isNaN(c4) && c4 > 0 && c4 <= 35) return c4 + '반';
+  }
+  // 하이픈/언더바 표기 (예: 3-2-15)
+  if (sNo && sNo.match(/^\d+[-_](\d+)[-_]\d+$/)) {
+    var mH = sNo.match(/^\d+[-_](\d+)[-_]\d+$/);
+    var cH = parseInt(mH[1], 10);
+    if (!isNaN(cH) && cH > 0 && cH <= 35) return cH + '반';
+  }
+
+  // 3순위: 해당 카테고리에 이미 생성되어 있는 첫 번째 하위 집단 또는 기본 '1반'
+  var existingList = GROUPS[detectedCat] || [];
+  if (existingList.length > 0) return existingList[0];
+  return '1반';
+}
+
+/* 파일 일괄 등록 */
+function handleFileSelect(e) {
+  var files = e.target.files;
+  if (!files || files.length === 0) return;
+  processHtmlFiles(files);
+}
+
+function initDragAndDrop() {
+  var dz = document.getElementById('dropZone');
+  if (!dz) return;
+  ['dragenter', 'dragover'].forEach(function(evt) {
+    dz.addEventListener(evt, function(e) {
+      e.preventDefault(); e.stopPropagation();
+      dz.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function(evt) {
+    dz.addEventListener(evt, function(e) {
+      e.preventDefault(); e.stopPropagation();
+      dz.classList.remove('dragover');
+    });
+  });
+  dz.addEventListener('drop', function(e) {
+    var files = e.dataTransfer.files;
+    if (files && files.length > 0) processHtmlFiles(files);
+  });
+}
+
+function processHtmlFiles(files) {
+  var selEl = document.getElementById('targetGroupSelect');
+  var targetGroup = selEl ? selEl.value : '__AUTO__';
+  var loadedCount = 0;
+
+  Array.from(files).forEach(function(file) {
+    if (!file.name.match(/\.html?$/i)) return;
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      var htmlContent = evt.target.result;
+      parseAndAddStudent(htmlContent, file.name, targetGroup);
+      loadedCount++;
+      if (loadedCount === files.length) {
+        saveDB();
+        renderT1();
+        showToast(loadedCount + '개의 학생 포트폴리오 파일이 등록되었습니다!');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
+function detectCategory(data, htmlContent, filename) {
+  var hc = htmlContent || '';
+  var fn = filename || '';
+  var d = data || {};
+
+  // 1. HTML 내 활동 구분 텍스트 우선 탐지
+  var mMeta = hc.match(/활동\s*구분[:\s]+([^\s|<]+)/i);
+  if (mMeta && mMeta[1]) {
+    var raw = mMeta[1].trim();
+    if (raw.indexOf('자율') !== -1) return '자율활동';
+    if (raw.indexOf('진로') !== -1) return '진로활동';
+    if (raw.indexOf('팀') !== -1) return '팀프로젝트';
+    if (raw.indexOf('교과') !== -1 || raw.indexOf('세특') !== -1) return '교과세특';
+  }
+
+  // 2. JSON 데이터 키 탐지
+  if (d['s_no'] || d['s_subj'] || d['s_trig'] || d['s_subj_group'] || d['s_unit']) return '교과세특';
+  if (d['n_no'] || d['n_q'] || d['n_major'] || d['n_act'] || d['n_link']) return '진로활동';
+  if (d['t_no'] || d['t_topic'] || d['t_type'] || d['t_question'] || d['t_verify']) return '팀프로젝트';
+  if (d['j_no'] || d['j_q'] || d['j_subj'] || d['j_qs'] || d['j_refs']) return '자율활동';
+
+  // 3. 파일명 탐지
+  if (fn.indexOf('자율') !== -1) return '자율활동';
+  if (fn.indexOf('진로') !== -1) return '진로활동';
+  if (fn.indexOf('팀') !== -1) return '팀프로젝트';
+  if (fn.indexOf('교과') !== -1 || fn.indexOf('세특') !== -1) return '교과세특';
+
+  return CURRENT_CAT || '자율활동';
+}
+
+function parseAndAddStudent(htmlContent, filename, assignedGroup) {
+  var data = {};
+  var mJson = htmlContent.match(/<script id="student-portfolio-data"[^>]*>(.*?)<\/script>/s);
+  if (mJson && mJson[1]) {
+    try { data = JSON.parse(mJson[1]); } catch(e){}
+  }
+  var detectedCat = detectCategory(data, htmlContent, filename);
+
+  var sNo = data['j_no'] || data['n_no'] || data['t_no'] || data['s_no'] || '';
+  var sName = data['j_name'] || data['n_name'] || data['t_name'] || data['s_name'] || '';
+  var sSubj = data['j_subj'] || data['s_subj'] || data['n_major'] || data['t_type'] || '';
+  var sPeriod = data['j_period'] || data['n_period'] || data['t_period'] || data['s_period'] || '';
+  var sTopic = data['p_final_topic'] || data['t_topic'] || '';
+
+  if (!sName) {
+    var mTitle = htmlContent.match(/<h1 class="doc-title">(.*?)<\/h1>/);
+    if (mTitle) sTopic = mTitle[1];
+    var mMeta = htmlContent.match(/작성 학생:\s*([^\s|]+)/);
+    if (mMeta) sName = mMeta[1];
+  }
+  if (!sName) sName = filename.replace(/\.html?$/i, '');
+
+  var plan = {
+    topic: data['p_final_topic'] || sTopic || '',
+    startDesc: data['p_start_desc'] || '',
+    concept: data['p_concept'] || '',
+    career: data['p_career'] || '',
+    target: data['p_target'] || '',
+    variable: data['p_variable'] || '',
+    metric: data['p_metric'] || '',
+    ref1: data['p_ref1'] || '',
+    ref2: data['p_ref2'] || ''
+  };
+
+  var answers = [];
+  var secBoxRegex = /<div class="sec-box">\s*<div class="q-label">(.*?)<\/div>\s*<div class="q-body">(.*?)<\/div>\s*<\/div>/gs;
+  var match;
+  while ((match = secBoxRegex.exec(htmlContent)) !== null) {
+    var qLabel = match[1].replace(/<[^>]+>/g, '').trim();
+    var qAns = match[2].replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').trim();
+    if (qLabel.indexOf('기획 주제명') === -1 && qLabel.indexOf('탐구 출발점') === -1 && qLabel.indexOf('핵심 변인') === -1 && qLabel.indexOf('참고자료') === -1) {
+      answers.push({ label: qLabel, body: qAns });
+    }
+  }
+
+  var stuId = 'stu_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+  var existingIdx = STUDENTS.findIndex(function(s){
+    return s.no === sNo && s.name === sName && s.category === detectedCat;
+  });
+
+  // 소속 하위 집단 결정 (자동 감지 또는 명시적 선택 집단)
+  var finalGroup = assignedGroup;
+  if (!finalGroup || finalGroup === '__AUTO__') {
+    finalGroup = detectAssignedGroup(data, htmlContent, filename, detectedCat);
+  }
+
+  // 해당 대분류에 하위 집단 자동 확보
+  if (!GROUPS[detectedCat]) GROUPS[detectedCat] = [];
+  if (finalGroup && GROUPS[detectedCat].indexOf(finalGroup) === -1) {
+    GROUPS[detectedCat].push(finalGroup);
+  }
+
+  var newStu = {
+    id: (existingIdx !== -1) ? STUDENTS[existingIdx].id : stuId,
+    no: sNo || '미입력',
+    name: sName || '학생',
+    category: detectedCat,
+    group: finalGroup || '1반',
+    subj: sSubj,
+    period: sPeriod,
+    topic: sTopic || '자율 탐구활동',
+    plan: plan,
+    answers: answers,
+    draftBio: (existingIdx !== -1) ? STUDENTS[existingIdx].draftBio : '',
+    raw: data
+  };
+
+  if (existingIdx !== -1) {
+    STUDENTS[existingIdx] = newStu;
+  } else {
+    STUDENTS.push(newStu);
+  }
+}
+
+
+function renderStudentGroupSelect(s) {
+  var allGroups = getAllUniqueGroups();
+  var html = '<select onchange="changeStudentGroup(\'' + s.id + '\', this.value)" style="padding:4px 8px;border-radius:6px;border:1px solid var(--slate-300);font-size:12px;font-weight:700;color:var(--slate-800)">';
+  allGroups.forEach(function(g) {
+    html += '<option value="' + _esc(g) + '"' + (s.group === g ? ' selected' : '') + '>' + _esc(g) + '</option>';
+  });
+  html += '</select>';
+  return html;
+}
+
+function changeStudentGroup(stuId, newGroup) {
+  var stu = STUDENTS.find(function(s){ return s.id === stuId; });
+  if (stu) {
+    stu.group = newGroup;
+    saveDB();
+    showToast('[' + stu.name + '] 소속 집단이 [' + newGroup + '](으)로 변경되었습니다.');
+  }
+}
+
+function getAllUniqueGroups() {
+  var set = {};
+  CATEGORIES.forEach(function(c) {
+    (GROUPS[c] || []).forEach(function(g) { set[g] = true; });
+  });
+  return Object.keys(set).length > 0 ? Object.keys(set) : ['1반', '2반', '3반'];
+}
+
+var T1_CAT_FILTER = 'ALL';
+
+function setT1CatFilter(cat) {
+  T1_CAT_FILTER = cat;
+  document.querySelectorAll('#t1CatFilterChips .t2-cat-chip').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.cat === cat);
+  });
+  renderT1StudentTable();
+}
+
+function renderT1StudentTable() {
+  var tbody = document.getElementById('t1StudentTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  var kw = (document.getElementById('t1Search').value || '').trim().toLowerCase();
+  var filtered = STUDENTS.filter(function(s) {
+    if (T1_CAT_FILTER !== 'ALL' && s.category !== T1_CAT_FILTER) return false;
+    if (kw) {
+      var matchKw = (s.no && s.no.toLowerCase().indexOf(kw) !== -1) ||
+                    (s.name && s.name.toLowerCase().indexOf(kw) !== -1) ||
+                    (s.group && s.group.toLowerCase().indexOf(kw) !== -1) ||
+                    (s.category && s.category.toLowerCase().indexOf(kw) !== -1) ||
+                    (s.topic && s.topic.toLowerCase().indexOf(kw) !== -1);
+      if (!matchKw) return false;
+    }
+    return true;
+  });
+
+  var countLbl = document.getElementById('stuCountLabel');
+  if (countLbl) countLbl.textContent = STUDENTS.length + '명 중 ' + filtered.length;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--slate-500)">등록된 학생이 없습니다. 상단에서 파일을 등록하세요.</td></tr>';
+    return;
+  }
+
+  filtered.forEach(function(s) {
+    var tr = document.createElement('tr');
+    var bio = s.draftBio || '';
+    var bInfo = calcByteCount(bio);
+    var maxByte = s.customByteLimit || CATEGORY_BYTE_LIMITS[s.category] || (s.category === '진로활동' ? 2100 : 1500);
+    var pct = Math.min(100, Math.round((bInfo.bytes / maxByte) * 100));
+    var isOver = (bInfo.bytes > maxByte);
+    var gaugeColor = isOver ? '#e11d48' : (bInfo.bytes === 0 ? 'transparent' : (pct >= 80 ? '#0f766e' : '#0284c7'));
+    var textStatus = (bInfo.bytes === 0)
+      ? '<span style="color:var(--slate-400);font-weight:600">미작성 (0 Byte)</span>'
+      : ('<b style="color:' + (isOver ? '#e11d48' : '#0f766e') + '">' + bInfo.bytes.toLocaleString() + '</b> <span style="color:var(--slate-400);font-size:10.5px">/ ' + maxByte.toLocaleString() + ' Byte</span>' + (isOver ? ' <span style="font-size:10px;color:#e11d48;font-weight:800">(초과)</span>' : ''));
+
+    var gaugeHtml = '<div style="min-width:140px;max-width:190px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
+        '<span>' + textStatus + '</span>' +
+        '<span style="font-size:10px;font-weight:800;color:' + (isOver ? '#e11d48' : 'var(--slate-500)') + '">' + pct + '%</span>' +
+      '</div>' +
+      '<div style="width:100%;height:6px;background:var(--slate-200);border-radius:9999px;overflow:hidden">' +
+        '<div style="width:' + pct + '%;height:100%;background:' + gaugeColor + ';border-radius:9999px;transition:width 0.2s ease;"></div>' +
+      '</div>' +
+    '</div>';
+
+    var curGroups = GROUPS[s.category] || [];
+    var optHtml = '<option value="미지정">미지정</option>';
+    curGroups.forEach(function(g) {
+      optHtml += '<option value="' + _esc(g) + '" ' + (s.group === g ? 'selected' : '') + '>' + _esc(g) + '</option>';
+    });
+
+    var catClass = 'badge-done';
+    if (s.category === '자율활동') catClass = 'badge-cat-자율활동';
+    else if (s.category === '진로활동') catClass = 'badge-cat-진로활동';
+    else if (s.category === '팀프로젝트') catClass = 'badge-cat-팀프로젝트';
+    else if (s.category === '교과활동' || s.category === '교과세특') catClass = 'badge-cat-교과활동';
+
+    tr.innerHTML = '<td><input type="checkbox" class="stu-checkbox" value="' + s.id + '"></td>' +
+      '<td><b>' + _esc(s.no) + '</b></td>' +
+      '<td>' + _esc(s.name) + '</td>' +
+      '<td><span class="badge-status ' + catClass + '">' + _esc(s.category) + '</span></td>' +
+      '<td><select onchange="changeStudentGroup(\'' + s.id + '\', this.value)" style="padding:2px 6px;border-radius:4px;border:1px solid var(--slate-300);font-size:11.5px;font-weight:700">' + optHtml + '</select></td>' +
+      '<td>' + gaugeHtml + '</td>' +
+      '<td><button type="button" class="btn btn-danger btn-sm" onclick="deleteStudentSingle(\'' + s.id + '\')">삭제</button></td>';
+
+    tbody.appendChild(tr);
+  });
+}
+
+function changeStudentGroup(stuId, newGroup) {
+  var stu = STUDENTS.find(function(s){ return s.id === stuId; });
+  if (stu) {
+    stu.group = newGroup;
+    saveDB();
+    showToast('학생 소속 집단이 [' + newGroup + '](으)로 변경되었습니다.');
+  }
+}
+
+function deleteStudentSingle(stuId) {
+  if (!confirm('이 학생을 삭제하시겠습니까?')) return;
+  STUDENTS = STUDENTS.filter(function(s){ return s.id !== stuId; });
+  saveDB();
+  renderT1();
+  showToast('학생이 삭제되었습니다.');
+}
+
+function toggleCheckAll(el) {
+  document.querySelectorAll('.stu-checkbox').forEach(function(cb){ cb.checked = el.checked; });
+}
+
+function deleteSelectedStudents() {
+  var checked = Array.from(document.querySelectorAll('.stu-checkbox:checked')).map(function(c){ return c.value; });
+  if (checked.length === 0) {
+    alert('삭제할 학생을 선택하세요.');
+    return;
+  }
+  if (!confirm('선택한 ' + checked.length + '명의 학생을 정말 삭제하시겠습니까?')) return;
+  STUDENTS = STUDENTS.filter(function(s){ return checked.indexOf(s.id) === -1; });
+  saveDB();
+  renderT1();
+  showToast(checked.length + '명의 학생이 삭제되었습니다.');
+}
+
+// ════════════════════════════════════════════════
+// 탭 2 로직: 하위집단 버튼 바 & 학생 드롭다운 & 초안 에디터 (요청 6)
+// ════════════════════════════════════════════════
+
+var T2_SUBGROUP_FILTER = 'ALL';
+
+function initT2() {
+  renderT2SubgroupButtons();
+  renderT2StudentDropdown();
+}
+
+function setT2CatFilter(cat) {
+  T2_CAT_FILTER = cat;
+  T2_SUBGROUP_FILTER = 'ALL';
+  document.querySelectorAll('#t2CatChips .t2-cat-chip').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.cat === cat);
+  });
+  renderT2SubgroupButtons();
+  renderT2StudentDropdown();
+}
+
+function renderT2SubgroupButtons() {
+  var container = document.getElementById('t2SubgroupChips');
+  if (!container) return;
+  container.innerHTML = '';
+
+  var cats = (T2_CAT_FILTER === 'ALL') ? CATEGORIES : [T2_CAT_FILTER];
+  var groupsSet = {};
+  cats.forEach(function(c) {
+    (GROUPS[c] || []).forEach(function(g) { groupsSet[g] = true; });
+  });
+  var groupList = Object.keys(groupsSet);
+
+  // '전체' 버튼
+  var allBtn = document.createElement('button');
+  allBtn.type = 'button';
+  allBtn.className = 't2-subgroup-chip' + (T2_SUBGROUP_FILTER === 'ALL' ? ' active' : '');
+  allBtn.textContent = '전체 (' + groupList.length + '개 집단)';
+  allBtn.onclick = function() { setT2SubgroupFilter('ALL'); };
+  container.appendChild(allBtn);
+
+  groupList.forEach(function(gName) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 't2-subgroup-chip' + (T2_SUBGROUP_FILTER === gName ? ' active' : '');
+    btn.textContent = gName;
+    btn.onclick = function() { setT2SubgroupFilter(gName); };
+    container.appendChild(btn);
+  });
+}
+
+function setT2SubgroupFilter(grp) {
+  T2_SUBGROUP_FILTER = grp;
+  document.querySelectorAll('#t2SubgroupChips .t2-subgroup-chip').forEach(function(btn) {
+    var isMatch = (grp === 'ALL' && btn.textContent.indexOf('전체') === 0) || (btn.textContent === grp);
+    btn.classList.toggle('active', isMatch);
+  });
+  renderT2StudentDropdown();
+}
+
+function onT2SearchInput() {
+  renderT2StudentDropdown();
+}
+
+function renderT2StudentDropdown() {
+  var sel = document.getElementById('t2StudentSelect');
+  if (!sel) return;
+  sel.innerHTML = '';
+
+  var cat = T2_CAT_FILTER;
+  var grp = T2_SUBGROUP_FILTER;
+  var kw = ((document.getElementById('t2Search') || {}).value || '').trim().toLowerCase();
+
+  var filtered = STUDENTS.filter(function(s) {
+    if (cat !== 'ALL' && s.category !== cat) return false;
+    if (grp !== 'ALL' && s.group !== grp) return false;
+    if (kw) {
+      var matchKw = (s.no && s.no.toLowerCase().indexOf(kw) !== -1) ||
+                    (s.name && s.name.toLowerCase().indexOf(kw) !== -1) ||
+                    (s.topic && s.topic.toLowerCase().indexOf(kw) !== -1);
+      if (!matchKw) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    sel.innerHTML = '<option value="">선택 조건에 해당하는 학생이 없습니다 (0명)</option>';
+    document.getElementById('t2EmptyState').style.display = 'block';
+    document.getElementById('t2DetailView').style.display = 'none';
+    CURRENT_STU_ID = null;
+    return;
+  }
+
+  var defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = '-- 학생을 선택하세요 (총 ' + filtered.length + '명) --';
+  sel.appendChild(defaultOpt);
+
+  filtered.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s.id;
+    var isDone = (s.draftBio && s.draftBio.trim().length > 0);
+    opt.textContent = '[' + s.no + '] ' + s.name + (isDone ? ' ✓' : '');
+    if (s.id === CURRENT_STU_ID) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  // 선택된 학생 유지 또는 첫 번째 학생 자동 선택
+  if (!CURRENT_STU_ID || !filtered.some(function(s){ return s.id === CURRENT_STU_ID; })) {
+    selectStudent(filtered[0].id);
+    sel.value = filtered[0].id;
+  } else {
+    sel.value = CURRENT_STU_ID;
+  }
+}
+
+function onT2StudentDropdownChange(stuId) {
+  if (stuId) {
+    selectStudent(stuId);
+  }
+}
+
+// ── 질문별 세특 연결 안내 및 추천 1문장 생성기 (방안 1 키워드 슬롯 + 방안 3 탐구 심도 3단계 융합 & Quiz.md 어휘 탑재) ──
+var CACHED_SUTEK_LEVELS = {};
+
+function swSutekLvl(idxKey, lvl) {
+  var lvls = CACHED_SUTEK_LEVELS[idxKey];
+  if (!lvls || !lvls[lvl]) return;
+  var inp = document.getElementById('sutek_inp_' + idxKey);
+  if (inp) {
+    inp.value = lvls[lvl];
+    autoResizeTextarea(inp);
+  }
+  var container = document.getElementById('sutek_chips_' + idxKey);
+  if (container) {
+    container.querySelectorAll('.sutek-level-btn').forEach(function(b) {
+      b.classList.toggle('active', b.classList.contains('lvl-' + lvl));
+    });
+  }
+  var lvlNames = { 1: '🌱 기본 탐구', 2: '🔬 심층 분석', 3: '🚀 융합 발전' };
+  showToast('[' + (lvlNames[lvl] || lvl) + '] 수준의 세특 문장이 반영되었습니다.');
+}
+window.swSutekLvl = swSutekLvl;
+
+function getQuestionSutekInfo(qLabel, cat, qBody, stu) {
+  var lbl = (qLabel || '').trim();
+  var body = (qBody || '').trim();
+  var topic = (stu && stu.plan && stu.plan.topic) || (stu && stu.topic) || '탐구 주제';
+  topic = topic.replace(/["“”'‘’]/g, '').trim();
+  var hasBody = (body.length > 0 && body !== '(미입력)');
+
+  function josa(word, type) {
+    if (!word) return '';
+    var code = word.charCodeAt(word.length - 1) - 44032;
+    var hasBatchim = (code >= 0 && code <= 11171 && code % 28 !== 0);
+    if (type === '은는') return hasBatchim ? '은' : '는';
+    if (type === '이가') return hasBatchim ? '이' : '가';
+    if (type === '을를') return hasBatchim ? '을' : '를';
+    if (type === '과와') return hasBatchim ? '과' : '와';
+    return '';
+  }
+
+  // 본문 요약 스니펫 정제 (첫 문장 또는 최대 48자, 따옴표 제거)
+  var cleanBody = body.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
+  var firstSent = cleanBody.split('.')[0].trim();
+  var snip = firstSent ? (firstSent.length > 48 ? firstSent.substr(0, 48) + '…' : firstSent) : '';
+  snip = snip.replace(/["“”'‘’]/g, '').trim();
+
+  // Quiz.md 14대 행동 플래그 및 PRED_STRONG 고품질 어휘 기반 심도 판정
+  // expand/make/융합/모델링/종적 -> Level 3 (융합 발전)
+  // experiment/inquiry/분석/비교/검증/규명/데이터 -> Level 2 (심층 분석)
+  // 기본 조사/이해/정리 -> Level 1 (기본 탐구)
+  var autoLevel = 1;
+  if (/모델링|시뮬레이션|창작|융합|재구성|종적|후속|확장|비판적|설계|메커니즘|대안|발전|고안/.test(body) ||
+      lbl.indexOf('심화') !== -1 || lbl.indexOf('종적 연계') !== -1 || lbl.indexOf('새 의문') !== -1) {
+    autoLevel = 3;
+  } else if (/분석|비교|실험|측정|검증|규명|도출|데이터|통계|인과|가설|수치/.test(body) ||
+      lbl.indexOf('방법') !== -1 || lbl.indexOf('결과') !== -1 || lbl.indexOf('자료') !== -1 || lbl.indexOf('실행') !== -1) {
+    autoLevel = 2;
+  } else {
+    autoLevel = 1;
+  }
+
+  var guide = '';
+  var levels = { 1: '', 2: '', 3: '' };
+
+  if (lbl.indexOf('1-1') !== -1 || lbl.indexOf('호기심') !== -1 || lbl.indexOf('구체적 상황') !== -1 || lbl.indexOf('동기') !== -1) {
+    guide = '이 내용이 세특에 "수업 중 ~에 관심을 갖고 자기주도적으로 탐구를 시작함"으로 연결됩니다.';
+    levels[1] = hasBody
+      ? '수업 중 ' + topic + josa(topic, '과와') + ' 관련하여 ' + snip + '라는 기초 문제의식을 바탕으로 자기주도적 탐구를 시작함.'
+      : '수업 중 ' + topic + josa(topic, '과와') + ' 관련한 핵심 개념에 높은 관심을 갖고 자기주도적인 탐구 활동을 시작함.';
+    levels[2] = hasBody
+      ? '교과 개념을 심층 분석하는 과정에서 ' + snip + '라는 구체적인 학문적 질문을 포착하고 인과관계를 밝히기 위한 탐구 계획을 체계적으로 수립함.'
+      : '교과 수업 중 ' + topic + '의 다각적인 원리에 주목하여 핵심 변인을 규명하고자 정밀한 탐구 설계를 주도적으로 진행함.';
+    levels[3] = hasBody
+      ? '기존 이론과 통념에 비판적 의문을 제기하며 ' + snip + ' 현상을 다학제적 관점에서 규명하고자 독창적인 탐구 테마를 스스로 기획함.'
+      : topic + ' 관련 최신 학술 쟁점을 능동적으로 포착하고 선행 연구의 한계를 극복하려는 융합적 심층 탐구를 주도적으로 개척함.';
+
+  } else if (lbl.indexOf('1-2') !== -1 || lbl.indexOf('떠오른 질문') !== -1 || lbl.indexOf('브레인스토밍') !== -1) {
+    guide = '질문이 구체적일수록 세특에 "심층 탐구 질문을 스스로 설정하고"라는 표현으로 연결됩니다.';
+    levels[1] = hasBody
+      ? '주제 탐구 과정에서 ' + snip + ' 등 교과 지식과 연계된 다각적인 질문들을 체계적으로 도출함.'
+      : topic + '의 다각적인 측면을 분석하기 위해 교과 개념과 연계된 질문들을 체계적으로 도출함.';
+    levels[2] = hasBody
+      ? snip + ' 등 교과 개념의 심층적 인과관계를 밝히기 위해 변인과 조건을 세분화한 다각적 질문들을 논리적으로 구조화함.'
+      : topic + '의 본질적 메커니즘을 규명하고자 가설 검증이 가능한 정량적·정성적 분석 질문들을 체계적으로 정립함.';
+    levels[3] = hasBody
+      ? snip + ' 등 표면적 현상 이면의 구조적 쟁점을 비판적으로 파고드는 융합적 가설 질문들을 독창적으로 창안함.'
+      : topic + '을 둘러싼 학문적 딜레마를 해결하고자 다차원적 변인을 융합한 심층 질문군을 설계하고 새로운 이론적 틀을 제안함.';
+
+  } else if (lbl.indexOf('1-3') !== -1 || lbl.indexOf('최종 탐구 질문') !== -1) {
+    guide = '이 질문이 세특의 핵심 문장인 "~에 대한 탐구 질문을 스스로 설정하고 탐구를 수행함"으로 이어집니다.';
+    levels[1] = hasBody
+      ? snip + '라는 명확한 핵심 탐구 질문을 수립하고 대상과 절차를 정리하여 탐구에 착수함.'
+      : topic + '의 핵심 개념 규명을 위한 명확한 탐구 질문을 설정하고 실행 계획을 수립함.';
+    levels[2] = hasBody
+      ? snip + '라는 정밀한 탐구 질문을 확립하고 조작 변인과 통제 변인을 명확히 한 객관적 가설 검증 계획을 구체화함.'
+      : topic + '의 핵심 원리 규명을 위한 정밀한 탐구 질문을 설정하고 가설 검증 절차와 측정 지표를 정량적으로 설계함.';
+    levels[3] = hasBody
+      ? snip + '라는 고차원적 연구 질문을 확립하고 이론적 모델링과 교차 검증을 포함한 입체적 연구 프레임워크를 주도적으로 완성함.'
+      : topic + '의 미시적 원리와 거시적 파급효과를 아우르는 융합 연구 질문을 정립하고 독창적인 학술적 검증 로드맵을 구축함.';
+
+  } else if (lbl.indexOf('2-방법') !== -1 || lbl.indexOf('방법 및 설계') !== -1) {
+    guide = '선택한 탐구 방법들이 세특에 "~등 다각적인 방법론을 적용하여 객관성을 확보함"으로 연결됩니다.';
+    levels[1] = hasBody
+      ? '탐구의 신뢰도를 확보하기 위해 ' + snip + ' 등 적절한 조사 및 분석 방법론을 주도적으로 선정하여 적용함.'
+      : '탐구의 신뢰도를 높이고자 문헌 비교와 기본 분석 등 기초 방법론을 체계적으로 적용함.';
+    levels[2] = hasBody
+      ? '탐구의 객관성과 타당도를 확보하기 위해 ' + snip + ' 등 다각적인 정량·정성 분석 방법론을 상호 보완적으로 설계하여 체계적으로 실행함.'
+      : '분석 도구를 주도적으로 활용하여 문헌 비교와 데이터 분석 등 다각적인 방법론을 체계적으로 적용함.';
+    levels[3] = hasBody
+      ? snip + ' 등 복합 연구 방법론을 유기적으로 융합 설계하여 발생 가능한 오차 요인을 사전에 통제하고 결과의 학문적 신뢰도를 극대화함.'
+      : '이론 분석, 실험 시뮬레이션, 통계 검증을 통합한 고도화된 다중 연구 방법론을 설계하여 탁월한 연구 설계 역량을 입증함.';
+
+  } else if (lbl.indexOf('2-1') !== -1 || lbl.indexOf('참고 자료') !== -1 || lbl.indexOf('문헌') !== -1) {
+    guide = '자료 다양성이 세특에 "논문·통계·기사 등 다양한 자료를 비교·분석하여"로 표현됩니다.';
+    levels[1] = hasBody
+      ? snip + ' 등 관련 자료를 폭넓게 수집하고 신뢰할 수 있는 정보를 선별·정리하여 연구의 기본 토대를 마련함.'
+      : topic + ' 관련 기초 자료와 보고서를 성실히 수집·정리하여 탐구의 기반을 다짐.';
+    levels[2] = hasBody
+      ? '단순 조사를 넘어 ' + snip + ' 등 전문 학술 문헌과 공공 통계 데이터를 심층 비교·검토하여 신뢰도 높은 연구 근거를 확보함.'
+      : topic + ' 관련 전문 학술 자료와 통계를 다각도로 비교·검토하여 논리적 신뢰도가 높은 연구 근거를 탄탄히 마련함.';
+    levels[3] = hasBody
+      ? snip + ' 등 국내외 전문 학술 논문과 최신 메타 데이터를 비판적으로 교차 검증하며 선행 연구의 한계점을 보완하는 심도 있는 학문적 배경을 구축함.'
+      : topic + '에 대한 다학제적 연구 논문과 원천 데이터를 종합적으로 분석하여 선행 연구들의 시각차를 정밀하게 재구성함.';
+
+  } else if (lbl.indexOf('2-2') !== -1 || lbl.indexOf('실행 방법') !== -1 || lbl.indexOf('구체적 행동') !== -1) {
+    guide = '실제 실행 행동이 세특에 "~도구를 활용하여 직접 데이터를 추출·분석하고 정량적으로 검증함"으로 구체화됩니다.';
+    levels[1] = hasBody
+      ? snip + ' 과정을 주도적으로 수행하며 계획된 탐구 절차를 성실하게 실행함.'
+      : '분석 도구를 활용하여 수집된 자료를 체계적으로 정리하고 계획에 따른 탐구 활동을 주도적으로 완수함.';
+    levels[2] = hasBody
+      ? snip + ' 과정에서 정밀한 데이터 분석과 변인 통제 절차를 철저히 실행하여 가설을 객관적으로 입증하는 실천 역량을 보임.'
+      : '분석 도구를 주도적으로 활용하여 수집된 데이터를 체계적으로 추출·분석하고 핵심 변인을 정량적으로 검증함.';
+    levels[3] = hasBody
+      ? snip + ' 절차를 고도화하여 발생 가능한 실험 오차를 정밀하게 보정하고, 독창적인 분석 알고리즘(또는 실험 프레임워크)을 직접 구축하여 검증을 완수함.'
+      : '수집된 대규모 데이터를 수학적·공학적 모델링 기법으로 정밀 시뮬레이션하여 문제 해결의 최적 솔루션을 직접 도출함.';
+
+  } else if (lbl.indexOf('2-3') !== -1 || lbl.indexOf('탐구 결과') !== -1 || lbl.indexOf('소제목별') !== -1) {
+    guide = '이 결과가 세특의 "자료를 비교·분석하여 ~라는 결론을 도출함"으로 직결됩니다.';
+    levels[1] = hasBody
+      ? snip + ' 관련 자료를 면밀히 비교하여 주요 현상과 유의미한 기초 결론을 체계적으로 도출함.'
+      : topic + ' 관련 자료를 비교·분석하여 핵심 현상을 정리하고 타당한 결론을 도출함.';
+    levels[2] = hasBody
+      ? '자료를 다각도로 정밀 비교·분석하여 ' + snip + '라는 유의미한 결론을 도출하고 핵심 인과 메커니즘을 객관적으로 규명함.'
+      : '체계적인 비교 분석을 통해 ' + topic + '에 내재된 주요 메커니즘을 명확히 규명하고 설득력 있는 결론을 도출함.';
+    levels[3] = hasBody
+      ? snip + ' 결과를 비판적으로 고찰하여 단순 수치 해석을 넘어선 새로운 모델링을 수립하고 실천적 대안과 학문적 시사점을 종합적으로 제시함.'
+      : topic + '의 결과를 다학제적 관점에서 재해석하여 새로운 이론적 모형을 제안하고 후속 연구의 핵심 지표를 정립함.';
+
+  } else if (lbl.indexOf('2-4') !== -1 || lbl.indexOf('알게 된 점') !== -1 || lbl.indexOf('느낀 점') !== -1) {
+    guide = '이 성장 서술이 세특의 "이를 통해 ~라는 시각을 갖게 됨"으로 표현됩니다.';
+    levels[1] = hasBody
+      ? '탐구 과정을 통해 배운 지식을 성찰하며 ' + snip + ' 등 한층 성숙한 학문적 시각과 전공 흥미를 형성함.'
+      : '탐구 활동을 통해 교과 지식을 폭넓게 내면화하고 관련 전공에 대한 긍정적 학업 태도를 기름.';
+    levels[2] = hasBody
+      ? '탐구 전후의 인식을 성찰하며 ' + snip + ' 등 기존 통념을 넘어선 분석적 통찰과 심화된 전공 역량을 체득함.'
+      : '탐구 과정을 통해 배운 지식을 비판적으로 재해석하며 한 차원 높은 학문적 시각과 전공 성숙도를 체득함.';
+    levels[3] = hasBody
+      ? snip + ' 과정을 통해 학문적 패러다임을 비판적으로 재해석하고 자신의 진로와 연계된 실천적 문제의식으로 발전시키는 탁월한 지적 도약을 이룸.'
+      : '단순 지식 습득을 넘어 사회적 쟁점과 전공 지식을 유기적으로 연결하며 학문적 소명 의식과 탁월한 학술적 발전 가능성을 보여줌.';
+
+  } else if (lbl.indexOf('심화-1') !== -1 || lbl.indexOf('새 의문') !== -1) {
+    guide = '이 질문이 세특의 "탐구 과정에서 생긴 새로운 의문을 바탕으로 심화 탐구로 발전시킴"으로 연결됩니다.';
+    levels[1] = hasBody
+      ? '탐구 결과에 안주하지 않고 ' + snip + '라는 후속 의문을 발굴하여 추가 학습 과제로 자연스럽게 연결함.'
+      : '기존 탐구의 결론에서 파생된 의문을 스스로 제기하며 학문적 탐구열을 연속적으로 이어감.';
+    levels[2] = hasBody
+      ? '1차 탐구의 결론에서 파생된 ' + snip + '라는 심화 의문을 스스로 제기하고 선행 조건과의 상관관계를 논리적으로 분석함.'
+      : '기존 탐구의 결론에서 파생된 심화 의문을 스스로 제기하며 지적 호기심을 주도적으로 심화 발전시킴.';
+    levels[3] = hasBody
+      ? snip + '라는 새로운 학문적 딜레마를 스스로 포착하고 이를 독립적인 심화 연구 프로젝트로 확장 기획하는 탁월한 자기주도성을 보임.'
+      : '1차 탐구의 경계를 뛰어넘는 심화 의문을 창의적으로 발굴하고 이를 새로운 이론적 가설 검증 단계로 대담하게 확장함.';
+
+  } else if (lbl.indexOf('심화-2') !== -1 || lbl.indexOf('추가탐구') !== -1 || lbl.indexOf('이전과 연결') !== -1) {
+    guide = '1차 탐구와 2차 추가 탐구를 종합하여 "탐구의 한계를 주도적으로 극복하는 문제해결력을 보임"으로 연결됩니다.';
+    levels[1] = hasBody
+      ? '초기 탐구의 아쉬운 점을 보완하기 위해 ' + snip + ' 내용을 추가적으로 검토하며 탐구의 완성도를 높임.'
+      : '초기 탐구의 제한점을 보완하는 추가 조사를 수행하여 성실한 탐구 태도를 보임.';
+    levels[2] = hasBody
+      ? '1차 탐구의 한계를 주도적으로 극복하고자 ' + snip + ' 과정을 심도 있게 교차 검증하며 탁월한 문제해결력과 학술적 완성도를 입증함.'
+      : '초기 탐구의 제한점을 심층 보완하는 추가 분석을 수행하여 문제해결력과 학술적 완성도를 종합적으로 입증함.';
+    levels[3] = hasBody
+      ? snip + ' 과정을 통해 이론과 실제의 격차를 실증적으로 규명하고 다각적 피드백을 반영한 독창적인 완성형 솔루션을 도출함.'
+      : '이전 연구의 한계를 혁신적인 분석 프레임워크로 재구성하여 오차를 최소화하고 새로운 학술적 지평을 제시함.';
+
+  } else if (lbl.indexOf('종적 연계') !== -1 || lbl.indexOf('종적 흐름') !== -1) {
+    guide = '이전 학년 활동과 연계하여 세특에 "지속적인 학업 열정과 성장 스토리를 보여줌"으로 연결됩니다.';
+    levels[1] = hasBody
+      ? '이전 학년의 탐구 경험과 이번 ' + topic + ' 탐구를 연계하여 ' + snip + ' 등 점진적으로 발전하는 학업 역량을 보여줌.'
+      : '학년 간 탐구 주제를 연결하며 지적 호기심을 지속적으로 확장하는 학문적 태도를 나타냄.';
+    levels[2] = hasBody
+      ? '이전 학년의 학업 성과와 이번 ' + topic + ' 탐구를 유기적으로 연계하여 ' + snip + ' 등 지적 호기심을 연속적으로 심화시키는 학문적 지속성을 입증함.'
+      : '학년 간 탐구 주제를 유기적으로 확장하며 지적 호기심을 지속적으로 심화시키는 탁월한 학문적 지속성을 나타냄.';
+    levels[3] = hasBody
+      ? '학년별 탐구 성과를 체계적인 누적 로드맵으로 통합 발전시키며 ' + snip + ' 등 전공 분야에 대한 깊이 있는 통찰과 고도화된 학업 역량을 증명함.'
+      : '이전 학년의 기초 연구를 고차원적 전공 심화 프로젝트로 집대성하여 독창적인 학술적 성장 스토리를 완성함.';
+
+  } else if (lbl.indexOf('기획서') !== -1) {
+    guide = '기획서의 핵심 내용이 세특에 "주제 설정 및 탐구 기획 능력이 탁월함"으로 연결됩니다.';
+    levels[1] = hasBody
+      ? topic + '을 탐구 과제로 정하고 ' + snip + '라는 핵심 출발점을 구체화하여 체계적인 기획력을 입증함.'
+      : topic + '의 본질을 파악하고자 선행 조사를 바탕으로 정밀한 탐구 설계를 주도적으로 완성함.';
+    levels[2] = hasBody
+      ? topic + '의 본질을 밝히기 위해 ' + snip + ' 관점에서 변인과 절차를 주도적으로 기획하는 우수한 연구 설계 역량을 보임.'
+      : topic + '의 핵심 원리 규명을 목표로 연구 변인과 측정 지표를 정량적으로 기획하는 치밀한 탐구 역량을 발휘함.';
+    levels[3] = hasBody
+      ? topic + '에 대해 ' + snip + '라는 융합적 가설을 바탕으로 정밀 검증 로드맵을 선제적으로 기획·수립하는 탁월한 연구 주도성을 발휘함.'
+      : topic + ' 관련 최신 쟁점을 융합적 시각으로 포착하고 독창적인 탐구 방법론과 다단계 검증 계획을 완성도 높게 기획함.';
+
+  } else {
+    guide = '학생의 구체적인 작성 내용이 세특의 핵심 역량 서술 문장으로 연결됩니다.';
+    levels[1] = hasBody
+      ? snip + ' 과정을 성실하게 수행하며 교과 지식을 실천적으로 탐구하는 성실한 태도를 보임.'
+      : topic + ' 관련 세부 탐구 활동을 주도적으로 완수하며 우수한 탐구 역량을 보임.';
+    levels[2] = hasBody
+      ? snip + ' 과정을 주도적으로 수행하며 핵심 개념을 정확히 분석하고 논리적으로 증명하는 우수한 탐구 역량을 보임.'
+      : topic + '의 세부 쟁점을 체계적으로 분석하고 타당한 근거를 바탕으로 연구를 주도적으로 완수함.';
+    levels[3] = hasBody
+      ? snip + ' 과정을 심화 발전시켜 다각적인 관점에서 비판적으로 재해석하고 독창적인 학문적 시사점을 도출함.'
+      : topic + ' 관련 탐구 활동을 고도화하여 다학제적 응용 방안을 창안하고 실천적 솔루션을 완성함.';
+  }
+
+  // 학교생활기록부 표준 문체: 큰따옴표, 작은따옴표 완전 제거 및 자연스러운 문장 다듬기
+  [1, 2, 3].forEach(function(lvl) {
+    levels[lvl] = levels[lvl].replace(/["“”'‘’]/g, '').replace(/\s+/g, ' ').trim();
+  });
+
+  return {
+    guide: guide,
+    sentence: levels[autoLevel],
+    level: autoLevel,
+    levels: levels,
+    hasBody: hasBody
+  };
+}
+
+// ── 표준 NEIS 세특 4종 추천 문안 생성기 (유형 4: 9문장 완결형 포함) ──
+function generateSutekDrafts(st) {
+  var d = st.raw || {};
+
+  var topic = (d['p_final_topic'] || d['j_subj'] || st.topic || '').trim().replace(/["“”'‘’]/g, '');
+  var trig = (d['j_trig'] || d['n_trig'] || d['s_trig'] || d['p_start_desc'] || '').trim().replace(/["“”'‘’]/g, '');
+  var act = (d['j_refs'] || d['n_act'] || d['s_act'] || d['p_target'] || '').trim().replace(/["“”'‘’]/g, '');
+  var growth = (d['j_growth'] || d['n_growth'] || d['s_growth'] || d['j_feel'] || d['j_result'] || '').trim().replace(/["“”'‘’]/g, '');
+
+  var finalTopic = topic || (st.subj ? st.subj + ' 심층 탐구 주제' : '자율 탐구 주제');
+  var trigSnip = trig ? trig.split('.')[0].replace(/\n/g, ' ').substr(0, 48) : finalTopic + '의 원리와 개념';
+  var actSnip = act ? act.split('.')[0].replace(/\n/g, ' ').substr(0, 52) : '관련 교과 개념과 전문 학술 자료를 다각도로 비교 검토하고';
+  var growthSnip = growth ? growth.split('.')[0].replace(/\n/g, ' ').substr(0, 52) : '배운 지식을 실제 문제 상황에 심화 적용하며 지적 성장을 이룸';
+
+  function josa(word, type) {
+    if (!word) return '';
+    var code = word.charCodeAt(word.length - 1) - 44032;
+    var hasBatchim = (code >= 0 && code <= 11171 && code % 28 !== 0);
+    if (type === '은는') return hasBatchim ? '은' : '는';
+    if (type === '이가') return hasBatchim ? '이' : '가';
+    if (type === '을를') return hasBatchim ? '을' : '를';
+    if (type === '과와') return hasBatchim ? '과' : '와';
+    return '';
+  }
+
+  // 유형 1: 학업역량 심화형 (따옴표 배제)
+  var d1 = '수업 중 ' + finalTopic + josa(finalTopic, '과와') + ' 관련하여 ' + trigSnip + '라는 학문적 의문을 주도적으로 형성함. ' +
+           '이를 논리적으로 검증하기 위해 ' + actSnip + ' 체계적인 분석 과정을 거쳤으며, ' +
+           '탐구 결과를 바탕으로 ' + growthSnip + ' 등 높은 지적 호기심과 탁월한 학업 탐구 역량을 뚜렷이 입증함.';
+
+  // 유형 2: 전공·진로 연계형
+  var d2 = '희망 진로 분야에 대한 뚜렷한 문제의식을 바탕으로 ' + finalTopic + josa(finalTopic, '을를') + ' 탐구 과제로 스스로 선정함. ' +
+           '전공 기초 원리를 심층 적용하고자 ' + actSnip + ' 다각적 데이터를 분석하고 실천적 해결 방안을 모색함. ' +
+           '탐구 과정을 통해 ' + growthSnip + ' 등 전공 적합성과 자기주도적 진로 성숙도를 돋보이게 발휘함.';
+
+  // 유형 3: 문제해결·성장형 (따옴표 배제)
+  var d3 = finalTopic + '에 대한 기존 통념에 비판적 시각으로 접근하여 ' + trigSnip + ' 관점의 심층 질문을 수립함. ' +
+           '초기 탐구 과정의 한계를 극복하기 위해 ' + actSnip + ' 직접 정량 데이터를 검증하며 끈기 있게 결론을 도출함. ' +
+           '단순 지식 습득에 머물지 않고 ' + growthSnip + ' 등 우수한 문제해결력과 지적 발전 가능성을 보여줌.';
+
+  // 유형 4: 9개 질문 전과정 완결형 (8~9문장 상세 풀스토리)
+  var d4Arr = [];
+  if (st.answers && st.answers.length > 0) {
+    st.answers.forEach(function(a) {
+      if (a.body && a.body.trim().length > 0 && a.body !== '(미입력)') {
+        var sInfo = getQuestionSutekInfo(a.label, st.category, a.body, st);
+        if (sInfo.sentence && d4Arr.indexOf(sInfo.sentence) === -1) {
+          d4Arr.push(sInfo.sentence);
+        }
+      }
+    });
+  }
+  // 답변이 적거나 부족할 경우 기획서 및 기본 3요소 보강
+  if (d4Arr.length < 5) {
+    if (st.plan && st.plan.startDesc) {
+      var pInfo = getQuestionSutekInfo('[1-1] 호기심 출발점', st.category, st.plan.startDesc, st);
+      if (d4Arr.indexOf(pInfo.sentence) === -1) d4Arr.unshift(pInfo.sentence);
+    }
+    if (st.plan && st.plan.target) {
+      var tInfo = getQuestionSutekInfo('[2-2] 실행 방법', st.category, st.plan.target, st);
+      if (d4Arr.indexOf(tInfo.sentence) === -1) d4Arr.push(tInfo.sentence);
+    }
+    if (st.plan && st.plan.ref1) {
+      var rInfo = getQuestionSutekInfo('[2-1] 참고 자료', st.category, st.plan.ref1, st);
+      if (d4Arr.indexOf(rInfo.sentence) === -1) d4Arr.push(rInfo.sentence);
+    }
+  }
+  if (d4Arr.length === 0) {
+    d4Arr = [d1, d2, d3];
+  }
+  var d4 = d4Arr.join(' ');
+
+  return { academic: d1, career: d2, critical: d3, fullStory: d4 };
+}
+
+function setSplitRatio(ratio) {
+  var split = document.querySelector('.t2-content-split');
+  if (!split) return;
+  split.classList.remove('ratio-64', 'ratio-55', 'ratio-46');
+  if (ratio === '6:4') split.classList.add('ratio-64');
+  else if (ratio === '4:6') split.classList.add('ratio-46');
+  else split.classList.add('ratio-55');
+
+  document.querySelectorAll('.btn-ratio').forEach(function(b) {
+    b.classList.remove('active');
+  });
+  var cur = document.getElementById('btnRatio' + ratio.replace(':', ''));
+  if (cur) cur.classList.add('active');
+}
+
+function insertAnswerQuote(ansIdx) {
+  var stu = STUDENTS.find(function(s){ return s.id === CURRENT_STU_ID; });
+  if (!stu) return;
+  var textToInsert = '';
+  if (ansIdx === 'plan') {
+    textToInsert = stu.plan.topic + ' - ' + stu.plan.startDesc;
+  } else if (stu.answers && stu.answers[ansIdx]) {
+    textToInsert = stu.answers[ansIdx].body;
+  }
+  if (!textToInsert) return;
+
+  var ta = document.getElementById('draftTextarea');
+  if (!ta) return;
+  var curVal = ta.value.trim();
+  if (curVal.length > 0) {
+    ta.value = curVal + '\n\n' + textToInsert;
+  } else {
+    ta.value = textToInsert;
+  }
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+  updateByteCounter();
+  autoResizeTextarea(ta);
+  showToast('학생 원문이 초안 에디터에 삽입되었습니다.');
+}
+
+function insertSutekSentence(ansIdx) {
+  var stu = STUDENTS.find(function(s){ return s.id === CURRENT_STU_ID; });
+  if (!stu) return;
+  var textToInsert = '';
+
+  // 1. 교사가 직접 수정한 인풋창이 있으면 해당 값을 최우선 반영
+  var editInp = document.getElementById('sutek_inp_' + ansIdx);
+  if (editInp && editInp.value && editInp.value.trim().length > 0) {
+    textToInsert = editInp.value.trim();
+  } else if (ansIdx === 'plan') {
+    var pInfo = getQuestionSutekInfo('[기획서] 주제 기획', stu.category, (stu.plan.topic + ' ' + (stu.plan.startDesc || '')), stu);
+    textToInsert = pInfo.sentence;
+  } else if (stu.answers && stu.answers[ansIdx]) {
+    var a = stu.answers[ansIdx];
+    var sInfo = getQuestionSutekInfo(a.label, stu.category, a.body, stu);
+    textToInsert = sInfo.sentence;
+  }
+  if (!textToInsert) return;
+
+  // 큰따옴표, 작은따옴표 등 모든 따옴표 제거하여 학교생활기록부 표준 문체로 정제
+  textToInsert = textToInsert.replace(/["“”'‘’]/g, '').replace(/\s+/g, ' ').trim();
+
+  var ta = document.getElementById('draftTextarea');
+  if (!ta) return;
+  var curVal = ta.value.trim();
+  if (curVal.length > 0) {
+    ta.value = curVal + ' ' + textToInsert;
+  } else {
+    ta.value = textToInsert;
+  }
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+  updateByteCounter();
+  autoResizeTextarea(ta);
+  showToast('세특 문장이 초안 편집기에 추가되었습니다.');
+}
+
+function selectStudent(stuId) {
+  CURRENT_STU_ID = stuId;
+  var stu = STUDENTS.find(function(s){ return s.id === stuId; });
+  if (!stu) return;
+
+  // 버튼 active 표시 갱신
+  document.querySelectorAll('.stu-btn-pill').forEach(function(btn) {
+    btn.classList.toggle('active', btn.textContent.indexOf(stu.name) !== -1 && btn.textContent.indexOf(stu.no) !== -1);
+  });
+
+  document.getElementById('t2EmptyState').style.display = 'none';
+  var detailView = document.getElementById('t2DetailView');
+  detailView.style.display = 'flex';
+
+  // 헤더 갱신
+  document.getElementById('shName').textContent = stu.name;
+  document.getElementById('shMeta').textContent = stu.no + ' | ' + stu.category + ' (' + stu.group + ') | 기간: ' + (stu.period || '-');
+
+  // 좌측 원문 뷰어 렌더링 (질문별 세특 연결 및 추천 1문장 직접 수정 지원)
+  var viewer = document.getElementById('rawContentViewer');
+  var vh = '';
+
+  var pPlanInfo = getQuestionSutekInfo('[기획서] 주제 기획', stu.category, (stu.plan.topic + ' ' + (stu.plan.startDesc || '')), stu);
+  CACHED_SUTEK_LEVELS['plan'] = pPlanInfo.levels;
+  vh += '<div class="raw-q-card" style="background:#f0fdfa;border-color:#99f6e4;">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+      '<div style="font-size:13px;font-weight:900;color:#0f766e">📝 [2단계] 탐구 주제 기획서 요약</div>' +
+      '<div style="display:flex;gap:4px">' +
+        '<button type="button" class="btn btn-sm" onclick="insertAnswerQuote(\'plan\')" style="font-size:11px;padding:2px 7px;border:1px solid #99f6e4;background:#ffffff;color:#0f766e;border-radius:6px;cursor:pointer;font-weight:700" title="기획서 주제 및 출발점을 초안에 삽입">📋 원문 삽입</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="raw-q-ans" style="display:flex;flex-direction:column;gap:6px;font-size:12.5px;margin:4px 0 8px;">' +
+      '<div><b>기획 주제:</b> ' + _esc(stu.plan.topic || stu.topic) + '</div>' +
+      '<div><b>호기심 출발점:</b> ' + _esc(stu.plan.startDesc || '미입력') + '</div>' +
+      '<div><b>대상 및 변인:</b> ' + _esc([stu.plan.target, stu.plan.variable, stu.plan.metric].filter(Boolean).join(' / ') || '미입력') + '</div>' +
+      '<div><b>참고자료:</b> ' + _esc([stu.plan.ref1, stu.plan.ref2].filter(Boolean).join(' | ') || '미입력') + '</div>' +
+    '</div>' +
+    '<div class="raw-sutek-info" style="margin-top:8px;">' +
+      '<div class="raw-sutek-guide">📌 세특 연결: <span>' + _esc(pPlanInfo.guide) + '</span></div>' +
+      '<div style="margin-top:6px;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:4px">' +
+          '<div style="font-weight:700;font-size:11.5px;color:var(--slate-700)">💡 추천 세특 1문장 (직접 수정 가능):</div>' +
+          '<div class="sutek-level-chips" id="sutek_chips_plan">' +
+            '<span style="font-size:10.5px;color:var(--slate-500);font-weight:700;margin-right:2px">심도:</span>' +
+            '<button type="button" class="sutek-level-btn lvl-1' + (pPlanInfo.level === 1 ? ' active' : '') + '" onclick="swSutekLvl(\'plan\', 1)">🌱 기본 탐구</button>' +
+            '<button type="button" class="sutek-level-btn lvl-2' + (pPlanInfo.level === 2 ? ' active' : '') + '" onclick="swSutekLvl(\'plan\', 2)">🔬 심층 분석</button>' +
+            '<button type="button" class="sutek-level-btn lvl-3' + (pPlanInfo.level === 3 ? ' active' : '') + '" onclick="swSutekLvl(\'plan\', 3)">🚀 융합 발전</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;align-items:flex-start;">' +
+          '<textarea id="sutek_inp_plan" class="sutek-textarea" oninput="autoResizeTextarea(this)" style="flex:1;min-height:36px;height:auto;padding:6px 10px;font-size:12px;border:1px solid #99f6e4;border-radius:6px;background:#ffffff;font-family:inherit;line-height:1.55;resize:vertical;overflow-y:hidden;">' + _esc(pPlanInfo.sentence) + '</textarea>' +
+          '<button type="button" class="btn btn-sm btn-insert-sutek" onclick="insertSutekSentence(\'plan\')" style="white-space:nowrap;padding:7px 10px;font-weight:700" title="수정한 문장을 상단 에디터에 추가">+ 세특 문장 추가</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+
+  vh += '<div style="font-size:13px;font-weight:900;color:var(--slate-800);margin-top:6px">✍️ [3단계] ' + _esc(stu.category) + ' 세부 활동 답변 원문 (질문별 세특 연계)</div>';
+
+  if (stu.answers && stu.answers.length > 0) {
+    stu.answers.forEach(function(a, aIdx) {
+      var sInfo = getQuestionSutekInfo(a.label, stu.category, a.body, stu);
+      CACHED_SUTEK_LEVELS[aIdx] = sInfo.levels;
+      vh += '<div class="raw-q-card">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+          '<div class="raw-q-label">' + _esc(a.label) + '</div>' +
+          '<div style="display:flex;gap:4px">' +
+            (a.body ? '<button type="button" class="btn btn-sm" onclick="insertAnswerQuote(' + aIdx + ')" style="font-size:11px;padding:2px 7px;border:1px solid #cbd5e1;background:#ffffff;color:var(--slate-600);border-radius:6px;cursor:pointer" title="클릭 시 학생의 작성 원문 그대로 삽입">📋 원문 삽입</button>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="raw-q-ans">' + _esc(a.body || '(미입력)') + '</div>' +
+        '<div class="raw-sutek-info" style="margin-top:8px;">' +
+          '<div class="raw-sutek-guide">📌 세특 연결: <span>' + _esc(sInfo.guide) + '</span></div>' +
+          '<div style="margin-top:6px;">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:4px">' +
+              '<div style="font-weight:700;font-size:11.5px;color:var(--slate-700)">💡 추천 세특 1문장 (직접 수정 가능):</div>' +
+              '<div class="sutek-level-chips" id="sutek_chips_' + aIdx + '">' +
+                '<span style="font-size:10.5px;color:var(--slate-500);font-weight:700;margin-right:2px">심도:</span>' +
+                '<button type="button" class="sutek-level-btn lvl-1' + (sInfo.level === 1 ? ' active' : '') + '" onclick="swSutekLvl(' + aIdx + ', 1)">🌱 기본 탐구</button>' +
+                '<button type="button" class="sutek-level-btn lvl-2' + (sInfo.level === 2 ? ' active' : '') + '" onclick="swSutekLvl(' + aIdx + ', 2)">🔬 심층 분석</button>' +
+                '<button type="button" class="sutek-level-btn lvl-3' + (sInfo.level === 3 ? ' active' : '') + '" onclick="swSutekLvl(' + aIdx + ', 3)">🚀 융합 발전</button>' +
+              '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:6px;align-items:flex-start;">' +
+              '<textarea id="sutek_inp_' + aIdx + '" class="sutek-textarea" oninput="autoResizeTextarea(this)" style="flex:1;min-height:36px;height:auto;padding:6px 10px;font-size:12px;border:1px solid #cbd5e1;border-radius:6px;background:#ffffff;font-family:inherit;line-height:1.55;resize:vertical;overflow-y:hidden;">' + _esc(sInfo.sentence) + '</textarea>' +
+              '<button type="button" class="btn btn-sm btn-insert-sutek" onclick="insertSutekSentence(' + aIdx + ')" style="white-space:nowrap;padding:7px 10px;font-weight:700" title="수정한 문장을 상단 에디터에 추가">+ 세특 문장 추가</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+  } else {
+    vh += '<div style="color:var(--slate-500);font-size:12px;padding:20px;text-align:center">3단계 세부 질문 답변이 없습니다.</div>';
+  }
+  viewer.innerHTML = vh;
+
+  // 추천 세특 텍스트에어리어 초기 높이 자동 조절
+  viewer.querySelectorAll('.sutek-textarea').forEach(function(ta) {
+    autoResizeTextarea(ta);
+  });
+
+  // 바이트 기준 한도 셀렉터 동기화
+  var currentLimit = (stu && stu.customByteLimit) ? stu.customByteLimit : (CATEGORY_BYTE_LIMITS[stu.category] || (stu.category === '진로활동' ? 2100 : 1500));
+  var sel = document.getElementById('byteLimitSelect');
+  var customInp = document.getElementById('customByteInput');
+  if (sel) {
+    if (currentLimit === 1500 || currentLimit === 1800 || currentLimit === 2100) {
+      sel.value = String(currentLimit);
+      if (customInp) customInp.style.display = 'none';
+    } else {
+      sel.value = 'custom';
+      if (customInp) {
+        customInp.style.display = 'inline-block';
+        customInp.value = currentLimit;
+      }
+    }
+  }
+
+  // 상단 에디터: 저장된 초안이 있으면 불러오고, 없으면 빈칸 유지
+  var ta = document.getElementById('draftTextarea');
+  ta.value = stu.draftBio || '';
+  updateByteCounter();
+  autoResizeTextarea(ta);
+}
+
+function applyRecomDraft(idx) {
+  var key = (idx === 1) ? 'academic' : (idx === 2 ? 'career' : (idx === 3 ? 'critical' : 'fullStory'));
+  var txt = CACHED_DRAFTS[key];
+  if (!txt) return;
+
+  document.querySelectorAll('.recom-card').forEach(function(c, i){
+    c.classList.toggle('active', (i + 1) === idx);
+  });
+
+  var ta = document.getElementById('draftTextarea');
+  ta.value = txt;
+  updateByteCounter();
+  autoResizeTextarea(ta);
+  showToast('유형 ' + idx + ' 추천 문안이 에디터에 적용되었습니다.');
+}
+
+function onByteLimitChange(val) {
+  var customInp = document.getElementById('customByteInput');
+  var newLimit = 1500;
+  if (val === 'custom') {
+    if (customInp) {
+      customInp.style.display = 'inline-block';
+      customInp.focus();
+      newLimit = parseInt(customInp.value, 10) || 1500;
+    }
+  } else {
+    if (customInp) customInp.style.display = 'none';
+    newLimit = parseInt(val, 10) || 1500;
+  }
+  applyNewByteLimit(newLimit);
+}
+window.onByteLimitChange = onByteLimitChange;
+
+function onCustomByteInput(val) {
+  var newLimit = parseInt(val, 10);
+  if (newLimit && newLimit > 0) {
+    applyNewByteLimit(newLimit);
+  }
+}
+window.onCustomByteInput = onCustomByteInput;
+
+function applyNewByteLimit(newLimit) {
+  var curStu = STUDENTS.find(function(s){ return s.id === CURRENT_STU_ID; });
+  if (curStu) {
+    curStu.customByteLimit = newLimit;
+    CATEGORY_BYTE_LIMITS[curStu.category] = newLimit;
+    saveDB();
+  } else {
+    CATEGORY_BYTE_LIMITS['진로활동'] = newLimit;
+    saveDB();
+  }
+  updateByteCounter();
+  showToast('기준 한도가 ' + newLimit.toLocaleString() + ' Byte로 변경되었습니다.');
+}
+window.applyNewByteLimit = applyNewByteLimit;
+
+function updateByteCounter() {
+  var ta = document.getElementById('draftTextarea');
+  var text = ta.value || '';
+  var charCount = text.length;
+
+  var byteCount = 0;
+  for (var i = 0; i < text.length; i++) {
+    var code = text.charCodeAt(i);
+    byteCount += (code > 127) ? 3 : 1;
+  }
+
+  var curStu = STUDENTS.find(function(s){ return s.id === CURRENT_STU_ID; });
+  var maxByte = 1500;
+  if (curStu) {
+    maxByte = curStu.customByteLimit || CATEGORY_BYTE_LIMITS[curStu.category] || (curStu.category === '진로활동' ? 2100 : 1500);
+  } else {
+    maxByte = CATEGORY_BYTE_LIMITS['진로활동'] || 2100;
+  }
+
+  var maxByteLbl = document.getElementById('maxByteLabel');
+  if (maxByteLbl) maxByteLbl.textContent = maxByte.toLocaleString();
+
+  document.getElementById('charCount').textContent = charCount.toLocaleString();
+  document.getElementById('byteCount').textContent = byteCount.toLocaleString();
+
+  var summary = document.getElementById('shByteSummary');
+  if (summary) {
+    summary.textContent = '📏 ' + charCount.toLocaleString() + '자 / ' + byteCount.toLocaleString() + ' Byte' + (byteCount > maxByte ? ' (⚠️ 한도 초과)' : '');
+    summary.style.color = (byteCount > maxByte) ? '#e11d48' : '#0f766e';
+    summary.style.borderColor = (byteCount > maxByte) ? '#fda4af' : '#99f6e4';
+    summary.style.background = (byteCount > maxByte) ? '#fff1f2' : '#f0fdfa';
+  }
+
+  var pct = Math.min(100, Math.round((byteCount / maxByte) * 100));
+  var gauge = document.getElementById('byteGauge');
+  if (gauge) {
+    gauge.style.width = pct + '%';
+    gauge.style.background = (byteCount > maxByte) ? 'var(--rose)' : 'var(--primary)';
+  }
+
+  var foundProhibit = [];
+  var lowerText = text.toLowerCase();
+  PROHIBITED_WORDS.forEach(function(w) {
+    var isMatch = false;
+    if (w.match(/^[A-Za-z0-9\s]+$/)) {
+      if (lowerText.indexOf(w.toLowerCase()) !== -1) isMatch = true;
+    } else {
+      if (text.indexOf(w) !== -1) isMatch = true;
+    }
+    if (isMatch && foundProhibit.indexOf(w) === -1) {
+      foundProhibit.push(w);
+    }
+  });
+
+  var warn = document.getElementById('prohibitWarn');
+  var listEl = document.getElementById('prohibitList');
+  if (warn) {
+    if (foundProhibit.length > 0) {
+      warn.style.display = 'block';
+      if (listEl) {
+        var chipsHtml = '';
+        foundProhibit.forEach(function(w) {
+          chipsHtml += '<button type="button" class="prohibit-chip-btn" onclick="locateProhibitedWord(\'' + _esc(w).replace(/'/g, "\\'") + '\')" title="클릭 시 에디터 내 \'' + _esc(w) + '\' 단어로 이동 및 선택">' +
+            _esc(w) + ' ↗' +
+            '</button>';
+        });
+        listEl.innerHTML = chipsHtml;
+      }
+    } else {
+      warn.style.display = 'none';
+      if (listEl) listEl.innerHTML = '';
+    }
+  }
+}
+
+function locateProhibitedWord(word) {
+  var ta = document.getElementById('draftTextarea');
+  if (!ta) return;
+  var text = ta.value || '';
+  var lowerText = text.toLowerCase();
+  var lowerWord = (word || '').toLowerCase();
+  if (!lowerWord) return;
+
+  // 현재 커서 뒤부터 검색하여 같은 금지어가 여러 번 나타날 경우 순환 탐색 지원
+  var startPos = (ta.selectionEnd !== undefined && ta.selectionEnd > 0) ? ta.selectionEnd : 0;
+  var idx = lowerText.indexOf(lowerWord, startPos);
+  if (idx === -1) {
+    // 처음부터 다시 검색
+    idx = lowerText.indexOf(lowerWord);
+  }
+
+  if (idx === -1) {
+    showToast('금지어 "' + word + '"를 에디터에서 찾을 수 없습니다.');
+    return;
+  }
+
+  ta.focus();
+  ta.setSelectionRange(idx, idx + word.length);
+
+  // 스크롤 동기화 (행 높이 약 22px 계산)
+  var textBefore = text.substring(0, idx);
+  var lineCount = textBefore.split('\n').length;
+  var approxLineHeight = 22;
+  ta.scrollTop = Math.max(0, (lineCount - 2) * approxLineHeight);
+
+  showToast('🎯 금지어 [' + word + '] 위치로 이동하여 선택되었습니다. (단어를 수정 또는 삭제하세요)');
+}
+window.locateProhibitedWord = locateProhibitedWord;
+
+var IS_DRAFT_EDITOR_COLLAPSED = false;
+function toggleDraftEditorBox() {
+  IS_DRAFT_EDITOR_COLLAPSED = !IS_DRAFT_EDITOR_COLLAPSED;
+  var body = document.getElementById('draftEditorBody');
+  var btn = document.getElementById('btnToggleDraftBox');
+  var box = document.getElementById('draftEditorBox');
+  var summary = document.getElementById('shByteSummary');
+
+  if (IS_DRAFT_EDITOR_COLLAPSED) {
+    if (body) body.style.display = 'none';
+    if (btn) {
+      btn.innerHTML = '🔽 편집기 펼치기';
+      btn.style.background = '#f0fdfa';
+      btn.style.borderColor = '#0f766e';
+      btn.style.color = '#0f766e';
+    }
+    if (box) {
+      box.style.padding = '8px 16px';
+      box.style.marginBottom = '8px';
+    }
+    if (summary) summary.style.display = 'inline-block';
+    showToast('편집기가 접혔습니다. 아래 학생 활동 보고서를 넓게 확인할 수 있습니다.');
+  } else {
+    if (body) body.style.display = 'block';
+    if (btn) {
+      btn.innerHTML = '🔼 편집기 접기';
+      btn.style.background = '#ffffff';
+      btn.style.borderColor = 'var(--slate-300)';
+      btn.style.color = 'var(--slate-700)';
+    }
+    if (box) {
+      box.style.padding = '14px 18px';
+      box.style.marginBottom = '14px';
+    }
+    if (summary) summary.style.display = 'none';
+    var ta = document.getElementById('draftTextarea');
+    if (ta) autoResizeTextarea(ta);
+  }
+}
+window.toggleDraftEditorBox = toggleDraftEditorBox;
+
+function saveCurrentDraft() {
+  if (!CURRENT_STU_ID) return;
+  var stu = STUDENTS.find(function(s){ return s.id === CURRENT_STU_ID; });
+  if (!stu) return;
+
+  var text = document.getElementById('draftTextarea').value || '';
+  stu.draftBio = text;
+  saveDB();
+  renderT2StudentButtons();
+  showToast('[' + stu.name + '] 학생의 초안이 저장되었습니다!');
+}
+
+function switchMobileT2View(view) {
+  var rawBox = document.getElementById('rawContentViewer');
+  var draftBox = document.getElementById('draftEditorBox');
+  var btnRaw = document.getElementById('btnMobRaw');
+  var btnDraft = document.getElementById('btnMobDraft');
+
+  if (view === 'raw') {
+    if (rawBox) rawBox.style.display = 'flex';
+    if (draftBox) draftBox.style.display = 'none';
+    if (btnRaw) btnRaw.classList.add('active');
+    if (btnDraft) btnDraft.classList.remove('active');
+  } else {
+    if (rawBox) rawBox.style.display = 'none';
+    if (draftBox) draftBox.style.display = 'flex';
+    if (btnRaw) btnRaw.classList.remove('active');
+    if (btnDraft) btnDraft.classList.add('active');
+  }
+}
+
+// ════════════════════════════════════════════════
+// 탭 3 로직: 집단별 일람 & 엑셀 멀티시트 내보내기 (요청 7)
+// ════════════════════════════════════════════════
+
+var CURRENT_T3_CAT = '자율활동';
+
+function setT3CatFilter(cat) {
+  CURRENT_T3_CAT = cat;
+  document.querySelectorAll('#t3CatChips .t2-cat-chip').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.cat === cat);
+  });
+  renderT3Summary();
+}
+
+function renderT3Summary() {
+  var cat = CURRENT_T3_CAT;
+  var container = document.getElementById('t3GroupSectionsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  var curGroups = GROUPS[cat] || [];
+  if (curGroups.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--slate-500)">등록된 하위 집단이 없습니다.</div>';
+    return;
+  }
+
+  curGroups.forEach(function(gName) {
+    var groupStudents = STUDENTS.filter(function(s){ return s.category === cat && s.group === gName; });
+
+    var sec = document.createElement('div');
+    sec.className = 't-card';
+    sec.innerHTML = '<div class="t-card-hd">' +
+      '<span>👥 <b>' + _esc(cat) + ' - ' + _esc(gName) + '</b> 집단 (' + groupStudents.length + '명)</span>' +
+      '</div>';
+
+    if (groupStudents.length === 0) {
+      sec.innerHTML += '<div style="color:var(--slate-500);font-size:12px;padding:16px;text-align:center">배정된 학생이 없습니다.</div>';
+    } else {
+      var tableHtml = '<div class="student-table-container"><table class="data-table"><thead><tr>' +
+        '<th style="width:90px">학번</th>' +
+        '<th style="width:90px">성명</th>' +
+        '<th style="width:180px">탐구 주제</th>' +
+        '<th>학생부 특기사항 내용 (글자 수에 맞춰 높이 자동 조절)</th>' +
+        '<th style="width:70px">저장</th>' +
+        '</tr></thead><tbody>';
+
+      groupStudents.forEach(function(s) {
+        var bio = s.draftBio || '';
+        var bInfo = calcByteCount(bio);
+        tableHtml += '<tr>' +
+          '<td><b>' + _esc(s.no) + '</b></td>' +
+          '<td>' + _esc(s.name) + '</td>' +
+          '<td><small>' + _esc(s.topic) + '</small></td>' +
+          '<td>' +
+          '  <textarea id="t3Bio_' + s.id + '" class="t3-bio-textarea" oninput="autoResizeTextarea(this); updateT3RowByte(\'' + s.id + '\')" style="width:100%;min-height:54px;padding:8px;border-radius:6px;border:1px solid var(--slate-300);font-size:12px;font-family:inherit;resize:vertical;overflow-y:hidden;line-height:1.6">' + _esc(bio) + '</textarea>' +
+          '  <div id="t3Byte_' + s.id + '" style="font-size:11px;color:var(--slate-500);text-align:right;margin-top:2px;">📏 ' + bInfo.chars.toLocaleString() + '자 / <b>' + bInfo.bytes.toLocaleString() + ' Byte</b></div>' +
+          '</td>' +
+          '<td><button type="button" class="btn btn-primary btn-sm" onclick="saveT3InlineDraft(\'' + s.id + '\')">저장</button></td>' +
+          '</tr>';
+      });
+
+      tableHtml += '</tbody></table></div>';
+      sec.innerHTML += tableHtml;
+    }
+
+    container.appendChild(sec);
+  });
+
+  // 테이블 내 모든 textarea 자동 높이 조절
+  setTimeout(function() {
+    autoResizeAllTextareas(container);
+  }, 20);
+}
+
+function calcByteCount(text) {
+  var str = text || '';
+  var bytes = 0;
+  for (var i = 0; i < str.length; i++) {
+    bytes += (str.charCodeAt(i) > 127) ? 3 : 1;
+  }
+  return { chars: str.length, bytes: bytes };
+}
+window.calcByteCount = calcByteCount;
+
+function updateT3RowByte(stuId) {
+  var ta = document.getElementById('t3Bio_' + stuId);
+  var lbl = document.getElementById('t3Byte_' + stuId);
+  if (ta && lbl) {
+    var info = calcByteCount(ta.value || '');
+    lbl.innerHTML = '📏 ' + info.chars.toLocaleString() + '자 / <b>' + info.bytes.toLocaleString() + ' Byte</b>';
+  }
+}
+window.updateT3RowByte = updateT3RowByte;
+
+function saveT3InlineDraft(stuId) {
+  var stu = STUDENTS.find(function(s){ return s.id === stuId; });
+  var ta = document.getElementById('t3Bio_' + stuId);
+  if (stu && ta) {
+    stu.draftBio = ta.value;
+    saveDB();
+    showToast('[' + stu.name + '] 초안이 저장되었습니다.');
+  }
+}
+
+function exportToExcelMultiSheets() {
+  var cat = CURRENT_T3_CAT;
+  var curGroups = GROUPS[cat] || [];
+
+  if (typeof XLSX === 'undefined') {
+    alert('SheetJS 엑셀 라이브러리가 로드되지 않았습니다.');
+    return;
+  }
+
+  var wb = XLSX.utils.book_new();
+  var totalExported = 0;
+
+  curGroups.forEach(function(gName) {
+    var groupStudents = STUDENTS.filter(function(s){ return s.category === cat && s.group === gName; });
+
+    var sheetData = [
+      ['학번', '이름', '학생부 내용']
+    ];
+
+    groupStudents.forEach(function(s) {
+      sheetData.push([
+        s.no || '',
+        s.name || '',
+        s.draftBio || ''
+      ]);
+    });
+
+    var ws = XLSX.utils.aoa_to_sheet(sheetData);
+    ws['!cols'] = [
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 80 }
+    ];
+
+    var safeSheetName = gName.replace(/[:\\/?*\[\]]/g, '').substr(0, 31) || '집단';
+    XLSX.utils.book_append_sheet(wb, ws, safeSheetName);
+    totalExported += groupStudents.length;
+  });
+
+  if (totalExported === 0) {
+    alert('[' + cat + '] 대분류에 등록된 학생이 없습니다.');
+    return;
+  }
+
+  var dt = new Date();
+  var ds = dt.getFullYear() + String(dt.getMonth()+1).padStart(2,'0') + String(dt.getDate()).padStart(2,'0');
+  var filename = '학생부세특_' + cat + '_' + ds + '.xlsx';
+  XLSX.writeFile(wb, filename);
+  showToast('엑셀 파일이 성공적으로 다운로드되었습니다!');
+}
+
+function resetAllDataConfirm() {
+  if (!confirm('⚠️ 모든 학생 데이터와 집단 설정이 초기화됩니다.\n계속하시겠습니까?')) return;
+  localStorage.removeItem(DB_KEY);
+  GROUPS = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+  STUDENTS = [];
+  CURRENT_STU_ID = null;
+  saveDB();
+  renderT1();
+  showToast('모든 데이터가 초기화되었습니다.');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadDB();
+  initDragAndDrop();
+  renderT1();
+});
+</script>
+</body>
+</html>
